@@ -41,14 +41,7 @@ const SOCIAL = ['IG', 'LI', 'TW', 'YT'];
 export default function EEFooter() {
   return (
     <footer className="ee-foot">
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1.4fr repeat(4, 1fr)',
-          gap: 64,
-          paddingBottom: 56,
-        }}
-      >
+      <div className="ee-grid-footer-inner">
         <div>
           <div style={{ color: 'var(--ee-paper)' }}>
             <EELogo />

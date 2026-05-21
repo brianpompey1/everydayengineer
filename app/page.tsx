@@ -47,7 +47,7 @@ export default function LandingPage() {
       <EENav />
 
       {/* HERO */}
-      <section style={{ position: 'relative', height: 720, overflow: 'hidden' }}>
+      <section className="ee-hero">
         <Image
           src="/hero.jpg"
           alt="Everyday Engineer community"
@@ -62,14 +62,11 @@ export default function LandingPage() {
             background: 'linear-gradient(90deg, rgba(10,19,37,0.88) 0%, rgba(10,19,37,0.45) 55%, rgba(10,19,37,0.1) 100%)',
           }}
         />
-        <div style={{ position: 'relative', padding: '120px 56px', maxWidth: 900 }}>
+        <div className="ee-hero-inner">
           <div className="ee-mono" style={{ color: 'var(--ee-gold)', marginBottom: 20 }}>
             EST. 2024 · NEW YORK, NY
           </div>
-          <h1
-            className="ee-h1"
-            style={{ color: '#fff', fontSize: 104, lineHeight: 0.94 }}
-          >
+          <h1 className="ee-h1 ee-hero-headline">
             Engineering<br />
             <span style={{ color: 'var(--ee-gold)' }}>Culture,</span><br />
             Reimagined.
@@ -80,7 +77,7 @@ export default function LandingPage() {
           >
             A curated community where technical excellence meets lifestyle elevation. Join the collective of everyday engineers shaping the future.
           </p>
-          <div style={{ display: 'flex', gap: 14, marginTop: 36 }}>
+          <div style={{ display: 'flex', gap: 14, marginTop: 36, flexWrap: 'wrap' }}>
             <Link href="/apply" className="ee-btn ee-btn-primary">
               Apply for membership
             </Link>
@@ -93,32 +90,18 @@ export default function LandingPage() {
             </Link>
           </div>
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 24,
-            left: 56,
-            right: 56,
-            display: 'flex',
-            justifyContent: 'space-between',
-            color: 'rgba(255,255,255,0.55)',
-            fontFamily: 'var(--ee-mono)',
-            fontSize: 11,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-          }}
-        >
+        <div className="ee-hero-meta">
           <span>40.6782° N · 73.9442° W</span>
-          <span>·</span>
+          <span className="ee-dot">·</span>
           <span>VOL. 03 · ISSUE 04</span>
-          <span>·</span>
+          <span className="ee-dot">·</span>
           <span>FIELD MEMBERS · 1,247</span>
         </div>
       </section>
 
       {/* THREE PILLARS */}
-      <section style={{ padding: '120px 56px', background: 'var(--ee-lavender)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 80, marginBottom: 64 }}>
+      <section className="ee-section" style={{ background: 'var(--ee-lavender)' }}>
+        <div className="ee-grid-pillars-hd">
           <div>
             <div className="ee-eyebrow">OUR FOUNDATION</div>
             <h2 className="ee-h2" style={{ marginTop: 16 }}>The Three Pillars</h2>
@@ -129,7 +112,7 @@ export default function LandingPage() {
             </p>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div className="ee-grid-col3">
           {PILLARS.map((p) => (
             <div
               key={p.num}
@@ -171,15 +154,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOUNDER */}
-      <section
-        style={{
-          padding: '120px 56px',
-          display: 'grid',
-          gridTemplateColumns: '1.1fr 1fr',
-          gap: 80,
-          alignItems: 'center',
-        }}
-      >
+      <section className="ee-section ee-grid-founder">
         <EEPhoto
           tone="warm"
           label="PORTRAIT · GUITRY GERMAIN, FOUNDER"
@@ -228,7 +203,7 @@ export default function LandingPage() {
       </section>
 
       {/* COMMUNITY GRID */}
-      <section style={{ padding: '120px 56px', background: 'var(--ee-lavender)' }}>
+      <section className="ee-section" style={{ background: 'var(--ee-lavender)' }}>
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
           <div className="ee-eyebrow">THE FIELD</div>
           <h2 className="ee-h2" style={{ marginTop: 16 }}>Community in Action</h2>
@@ -236,14 +211,7 @@ export default function LandingPage() {
             Beyond the screen. Real moments of connection, competition, and growth.
           </p>
         </div>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gridTemplateRows: '320px 320px',
-            gap: 16,
-          }}
-        >
+        <div className="ee-grid-community">
           <EEPhoto tone="court" label="SOCIETY HOOPS · WED LEAGUE" style={{ gridColumn: 'span 2', gridRow: 'span 2' }} />
           <EEPhoto tone="paper" label="WELLNESS RETREAT · CATSKILLS" />
           <EEPhoto tone="warm" label="NETWORKING · DUMBO LOFT" />
@@ -253,15 +221,15 @@ export default function LandingPage() {
       </section>
 
       {/* SHOP TEASER */}
-      <section style={{ padding: '120px 56px', background: 'var(--ee-lavender-2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56 }}>
+      <section className="ee-section" style={{ background: 'var(--ee-lavender-2)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56, flexWrap: 'wrap', gap: 16 }}>
           <div>
             <div className="ee-eyebrow">THE SHOP</div>
             <h2 className="ee-h2" style={{ marginTop: 16 }}>Wear the Movement</h2>
           </div>
           <Link href="/shop" className="ee-btn-link">View all gear ↗</Link>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+        <div className="ee-grid-col4">
           {PRODUCTS.map((p) => (
             <Link
               key={p.name}
@@ -294,8 +262,8 @@ export default function LandingPage() {
       </section>
 
       {/* NEWSLETTER / DISPATCH */}
-      <section style={{ padding: '96px 56px', background: 'var(--ee-navy-900)', color: 'var(--ee-paper)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+      <section className="ee-section-sm" style={{ background: 'var(--ee-navy-900)', color: 'var(--ee-paper)' }}>
+        <div className="ee-grid-newsletter">
           <div>
             <div className="ee-eyebrow">DISPATCH</div>
             <h2 className="ee-h2" style={{ marginTop: 16, color: '#fff' }}>Stay in the Loop</h2>

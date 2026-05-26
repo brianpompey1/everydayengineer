@@ -133,8 +133,8 @@ export default function MembershipPage() {
             A practical guide to the rooms, rituals, and resources of Emerging Estates membership. Read it like a manual. Apply when ready.
           </p>
           <div style={{ alignSelf: 'flex-end', textAlign: 'right' }}>
-            <Link href="/apply" className="ee-btn ee-btn-dark">
-              Apply for the Field →
+            <Link href="/signup" className="ee-btn ee-btn-dark">
+              Create your account →
             </Link>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function MembershipPage() {
                 ))}
               </ul>
               <Link
-                href="/apply"
+                href="/signup"
                 className={`ee-btn ${t.highlight ? 'ee-btn-primary' : 'ee-btn-dark'}`}
                 style={{ marginTop: 40, display: 'inline-flex' }}
               >

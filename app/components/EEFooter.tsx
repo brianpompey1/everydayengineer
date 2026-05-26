@@ -7,7 +7,7 @@ const COLS = [
     links: [
       { label: 'Benefits', href: '/membership' },
       { label: 'Pricing', href: '/membership' },
-      { label: 'Apply', href: '/apply' },
+      { label: 'Join free', href: '/signup' },
     ],
   },
   {

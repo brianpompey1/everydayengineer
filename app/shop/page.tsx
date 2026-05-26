@@ -214,8 +214,8 @@ export default function ShopPage() {
             </p>
           </div>
           <div style={{ display: 'flex', gap: 14, justifyContent: 'flex-end' }}>
-            <Link href="/apply" className="ee-btn ee-btn-primary">
-              Join the Field
+            <Link href="/signup" className="ee-btn ee-btn-primary">
+              Create your account
             </Link>
             <Link
               href="/membership"

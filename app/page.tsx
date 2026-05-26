@@ -78,8 +78,8 @@ export default function LandingPage() {
             A curated community where technical excellence meets lifestyle elevation. Join the collective of everyday engineers shaping the future.
           </p>
           <div style={{ display: 'flex', gap: 14, marginTop: 36, flexWrap: 'wrap' }}>
-            <Link href="/apply" className="ee-btn ee-btn-primary">
-              Apply for membership
+            <Link href="/signup" className="ee-btn ee-btn-primary">
+              Create your account
             </Link>
             <Link
               href="/journal"

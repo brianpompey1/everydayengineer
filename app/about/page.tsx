@@ -365,8 +365,8 @@ export default function AboutPage() {
         >
           "We spend our lives building systems for the world. It's time we engineered a community for ourselves."
         </p>
-        <Link href="/apply" className="ee-btn ee-btn-primary">
-          Apply for the Field →
+        <Link href="/signup" className="ee-btn ee-btn-primary">
+          Create your account →
         </Link>
       </section>
 

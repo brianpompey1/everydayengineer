@@ -47,11 +47,11 @@ export default function EENav() {
           Sign In
         </Link>
         <Link
-          href="/apply"
+          href="/signup"
           className="ee-btn ee-btn-primary"
           style={{ padding: '10px 18px', fontSize: 13 }}
         >
-          Apply
+          Join free
         </Link>
       </div>
     </nav>

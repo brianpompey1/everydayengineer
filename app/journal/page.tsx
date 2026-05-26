@@ -273,8 +273,8 @@ export default function JournalPage() {
         <p className="ee-body" style={{ maxWidth: 540, margin: '0 auto 32px', fontSize: 17 }}>
           The Field Journal ships quarterly — 96 pages, matte stock, free for Field members.
         </p>
-        <Link href="/apply" className="ee-btn ee-btn-dark">
-          Become a Field member →
+        <Link href="/signup" className="ee-btn ee-btn-dark">
+          Create your account →
         </Link>
       </section>
 

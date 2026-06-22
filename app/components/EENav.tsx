@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useUser } from '@clerk/nextjs';
 import EELogo from './EELogo';
 
 const LINKS = [
@@ -14,6 +15,7 @@ const LINKS = [
 
 export default function EENav() {
   const pathname = usePathname();
+  const { isSignedIn, isLoaded } = useUser();
 
   return (
     <nav className="ee-nav">
@@ -39,20 +41,32 @@ export default function EENav() {
         })}
       </div>
       <div className="ee-nav-cta">
-        <Link
-          href="/signin"
-          className="ee-btn ee-btn-ghost"
-          style={{ padding: '10px 16px', fontSize: 13 }}
-        >
-          Sign In
-        </Link>
-        <Link
-          href="/signup"
-          className="ee-btn ee-btn-primary"
-          style={{ padding: '10px 18px', fontSize: 13 }}
-        >
-          Join free
-        </Link>
+        {!isLoaded ? null : isSignedIn ? (
+          <Link
+            href="/today"
+            className="ee-btn ee-btn-primary"
+            style={{ padding: '10px 18px', fontSize: 13 }}
+          >
+            Go to Today →
+          </Link>
+        ) : (
+          <>
+            <Link
+              href="/signin"
+              className="ee-btn ee-btn-ghost"
+              style={{ padding: '10px 16px', fontSize: 13 }}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/signup"
+              className="ee-btn ee-btn-primary"
+              style={{ padding: '10px 18px', fontSize: 13 }}
+            >
+              Join free
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );

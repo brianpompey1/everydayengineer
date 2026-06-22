@@ -15,11 +15,6 @@ const SearchIcon = () => (
     <circle cx={11} cy={11} r={8} /><path d="M21 21l-4.3-4.3" />
   </svg>
 );
-const MsgIcon = () => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 12a8 8 0 0 1-12 7l-5 1 1-4a8 8 0 1 1 16-4z" />
-  </svg>
-);
 const MenuIcon = () => (
   <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
     <path d="M4 7h16M4 12h16M4 17h16" />
@@ -71,25 +66,6 @@ export default function EEMemberNav() {
         >
           <SearchIcon />
         </button>
-        <div style={{ position: 'relative' }}>
-          <button
-            style={{
-              width: 36, height: 36, borderRadius: '50%',
-              background: 'var(--ee-lavender-2)', border: 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--ee-ink-3)', cursor: 'pointer',
-            }}
-            aria-label="Messages"
-          >
-            <MsgIcon />
-          </button>
-          {/* Unread dot */}
-          <span style={{
-            position: 'absolute', top: -2, right: -2,
-            width: 10, height: 10, borderRadius: '50%',
-            background: 'var(--ee-gold)', border: '2px solid var(--ee-paper)',
-          }} />
-        </div>
         <Link href="/profile">
           <span style={{
             width: 36, height: 36, borderRadius: '50%', display: 'block',

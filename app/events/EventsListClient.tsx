@@ -4,7 +4,6 @@ import Link from 'next/link';
 import EEPhoto from '../components/EEPhoto';
 
 const CAL = 'M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 3v4M16 3v4';
-const PLUS = 'M12 5v14M5 12h14';
 const PIN = 'M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
 const FILTER = 'M4 5h16M7 12h10M10 19h4';
 
@@ -51,9 +50,6 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button className="ee-btn ee-btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Icon d={CAL} /> Calendar view
-            </button>
-            <button className="ee-btn ee-btn-dark" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon d={PLUS} /> Propose event
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSignUp } from '@clerk/nextjs/legacy';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import EELogo from '../components/EELogo';
@@ -24,7 +25,14 @@ const INCLUDED = [
 
 export default function SignUpPage() {
   const { isLoaded, signUp, setActive } = useSignUp();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      router.replace('/today');
+    }
+  }, [userLoaded, isSignedIn, router]);
 
   // 'form' | 'verify'
   const [step, setStep]         = useState<'form' | 'verify'>('form');

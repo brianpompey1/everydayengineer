@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSignIn } from '@clerk/nextjs/legacy';
+import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import EELogo from '../components/EELogo';
@@ -8,7 +9,14 @@ import EEPhoto from '../components/EEPhoto';
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { isSignedIn, isLoaded: userLoaded } = useUser();
   const router = useRouter();
+
+  useEffect(() => {
+    if (userLoaded && isSignedIn) {
+      router.replace('/today');
+    }
+  }, [userLoaded, isSignedIn, router]);
 
   const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');

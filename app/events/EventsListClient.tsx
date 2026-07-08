@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import EEPhoto from '../components/EEPhoto';
+import EventsCalendar from './EventsCalendar';
 
 const CAL = 'M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 3v4M16 3v4';
 const PIN = 'M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
@@ -31,6 +32,7 @@ export interface EventListItem {
 export default function EventsListClient({ events }: { events: EventListItem[] }) {
   const categories = ['All', ...Array.from(new Set(events.map((e) => e.category).filter(Boolean)))] as string[];
   const [activeCategory, setActiveCategory] = useState('All');
+  const [view, setView] = useState<'list' | 'calendar'>('list');
 
   const filtered = activeCategory === 'All' ? events : events.filter((e) => e.category === activeCategory);
   const featured = events[0];
@@ -48,8 +50,12 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="ee-btn ee-btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Icon d={CAL} /> Calendar view
+            <button
+              onClick={() => setView(view === 'list' ? 'calendar' : 'list')}
+              className={view === 'calendar' ? 'ee-btn ee-btn-dark' : 'ee-btn ee-btn-ghost'}
+              style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              <Icon d={CAL} /> {view === 'list' ? 'Calendar view' : 'List view'}
             </button>
           </div>
         </div>
@@ -61,6 +67,10 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
             <h3 style={{ fontSize: 20, fontWeight: 700 }}>No events yet.</h3>
             <p className="ee-body" style={{ marginTop: 8 }}>Check back soon — events are added regularly.</p>
           </div>
+        </section>
+      ) : view === 'calendar' ? (
+        <section style={{ padding: '16px 56px 96px' }}>
+          <EventsCalendar events={events} />
         </section>
       ) : (
         <>

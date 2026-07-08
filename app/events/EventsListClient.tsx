@@ -27,14 +27,26 @@ export interface EventListItem {
   capacity: number | null;
   going: number;
   rsvpStatus: string | null;
+  state: string | null;
+  university: string | null;
 }
 
 export default function EventsListClient({ events }: { events: EventListItem[] }) {
   const categories = ['All', ...Array.from(new Set(events.map((e) => e.category).filter(Boolean)))] as string[];
+  const states = Array.from(new Set(events.map((e) => e.state).filter(Boolean))).sort() as string[];
+  const universities = Array.from(new Set(events.map((e) => e.university).filter(Boolean))).sort() as string[];
+
   const [activeCategory, setActiveCategory] = useState('All');
+  const [activeState, setActiveState] = useState('All');
+  const [activeUniversity, setActiveUniversity] = useState('All');
   const [view, setView] = useState<'list' | 'calendar'>('list');
 
-  const filtered = activeCategory === 'All' ? events : events.filter((e) => e.category === activeCategory);
+  const filtered = events.filter((e) => {
+    if (activeCategory !== 'All' && e.category !== activeCategory) return false;
+    if (activeState !== 'All' && e.state !== activeState) return false;
+    if (activeUniversity !== 'All' && e.university !== activeUniversity) return false;
+    return true;
+  });
   const featured = events[0];
 
   return (
@@ -83,17 +95,39 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                 </button>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
               <span className="ee-mono">{filtered.length} events</span>
               <span style={{ width: 1, height: 16, background: 'var(--ee-line)' }} />
-              <span className="ee-mono" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icon d={FILTER} /> New York · Show all
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Icon d={FILTER} />
+                <select
+                  value={activeState}
+                  onChange={(e) => setActiveState(e.target.value)}
+                  className="ee-mono"
+                  style={{ border: '1px solid var(--ee-line)', borderRadius: 6, padding: '6px 10px', background: 'var(--ee-paper)', cursor: 'pointer', color: 'var(--ee-ink-2)' }}
+                >
+                  <option value="All">All states</option>
+                  {states.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <select
+                  value={activeUniversity}
+                  onChange={(e) => setActiveUniversity(e.target.value)}
+                  className="ee-mono"
+                  style={{ border: '1px solid var(--ee-line)', borderRadius: 6, padding: '6px 10px', background: 'var(--ee-paper)', cursor: 'pointer', color: 'var(--ee-ink-2)' }}
+                >
+                  <option value="All">All universities</option>
+                  {universities.map((u) => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </section>
 
           {/* Featured event */}
-          {activeCategory === 'All' && featured && (
+          {activeCategory === 'All' && activeState === 'All' && activeUniversity === 'All' && featured && (
             <section style={{ padding: '40px 56px 24px' }}>
               <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)', marginBottom: 14 }}>FEATURED · UP NEXT</div>
               <Link href={`/events/${featured.id}`} style={{ display: 'grid', gridTemplateColumns: '5fr 4fr', background: 'var(--ee-paper)', border: '1px solid var(--ee-line)', borderRadius: 12, overflow: 'hidden' }} className="ee-card-hover">

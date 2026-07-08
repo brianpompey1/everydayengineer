@@ -1,5 +1,12 @@
 import { supabaseAdmin } from './supabase';
 
+export const UNIVERSITIES = [
+  'Morgan State University',
+  'Auburn University',
+  'Canisius University',
+  'University at Buffalo',
+] as const;
+
 export interface EventRow {
   id: string;
   title: string;
@@ -14,6 +21,8 @@ export interface EventRow {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  state: string | null;
+  university: string | null;
   rsvp_count?: number;
 }
 

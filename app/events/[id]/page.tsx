@@ -73,7 +73,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', border: '1px solid var(--ee-line)', borderRadius: 10, overflow: 'hidden', marginBottom: 48 }}>
             {[
               { icon: CAL, label: 'When', value: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }), sub: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) },
-              { icon: PIN, label: 'Where', value: event.location ?? 'TBA', sub: '' },
+              { icon: PIN, label: 'Where', value: event.location ?? 'TBA', sub: event.university ?? event.state ?? '' },
               { icon: COMPASS, label: 'Capacity', value: event.capacity != null ? `${going} / ${event.capacity}` : `${going} going`, sub: spotsLeft != null ? `${spotsLeft} spots remaining` : '' },
             ].map(({ icon, label, value, sub }, i) => (
               <div key={label} style={{ padding: '20px 18px', borderRight: i < 2 ? '1px solid var(--ee-line)' : 'none' }}>

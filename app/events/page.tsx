@@ -31,6 +31,8 @@ export default async function EventsPage() {
     capacity: e.capacity,
     going: e.rsvp_count ?? 0,
     rsvpStatus: rsvpMap[e.id] ?? null,
+    state: e.state,
+    university: e.university,
   }));
 
   return (

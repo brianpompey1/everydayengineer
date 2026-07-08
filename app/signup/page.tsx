@@ -88,7 +88,7 @@ export default function SignUpPage() {
   };
 
   const rightPanel = (
-    <div style={{ position: 'relative', overflow: 'hidden' }}>
+    <div className="ee-signup-panel" style={{ position: 'relative', overflow: 'hidden' }}>
       <EEPhoto tone="court" label="" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,19,37,0.45) 0%, rgba(10,19,37,0.88) 100%)' }} />
       <div style={{ position: 'relative', padding: '64px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '100%', color: '#fff' }}>
@@ -127,8 +127,8 @@ export default function SignUpPage() {
   // ── Verify step ──
   if (step === 'verify') {
     return (
-      <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1.1fr', background: 'var(--ee-paper)' }}>
-        <div style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
+      <div className="ee-signup-grid" style={{ background: 'var(--ee-paper)' }}>
+        <div className="ee-signup-form" style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
           <Link href="/"><EELogo /></Link>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 460 }}>
             <div className="ee-eyebrow">VERIFY YOUR EMAIL</div>
@@ -195,8 +195,8 @@ export default function SignUpPage() {
 
   // ── Sign-up form ──
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', gridTemplateColumns: '1fr 1.1fr', background: 'var(--ee-paper)' }}>
-      <div style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
+    <div className="ee-signup-grid" style={{ background: 'var(--ee-paper)' }}>
+      <div className="ee-signup-form" style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
         <Link href="/"><EELogo /></Link>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 460 }}>

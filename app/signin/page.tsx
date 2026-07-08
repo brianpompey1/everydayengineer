@@ -76,14 +76,9 @@ export default function SignInPage() {
         <span>Resume Session</span>
       </div>
 
-      <div style={{
-        position: 'relative',
-        display: 'grid',
-        gridTemplateColumns: '5fr 4fr',
-        minHeight: 'calc(100vh - 80px)',
-      }}>
+      <div className="ee-signin-grid" style={{ position: 'relative' }}>
         {/* Left — manifesto */}
-        <div style={{ padding: '80px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div className="ee-signin-manifesto" style={{ padding: '80px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div className="ee-mono" style={{ color: 'var(--ee-gold)' }}>§ AUTHENTICATE</div>
             <h1 style={{
@@ -126,7 +121,7 @@ export default function SignInPage() {
         </div>
 
         {/* Right — form */}
-        <div style={{ background: 'var(--ee-paper)', color: 'var(--ee-ink)', padding: '80px 64px', position: 'relative' }}>
+        <div className="ee-signin-form" style={{ background: 'var(--ee-paper)', color: 'var(--ee-ink)', padding: '80px 64px', position: 'relative' }}>
           <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>CREDENTIALS</div>
           <h2 style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 56, fontWeight: 400, margin: '16px 0 32px', letterSpacing: '-0.02em' }}>
             Sign in.

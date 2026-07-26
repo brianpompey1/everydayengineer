@@ -3,35 +3,17 @@ import EELogo from './EELogo';
 
 const COLS = [
   {
-    title: 'Membership',
-    links: [
-      { label: 'Benefits', href: '/membership' },
-      { label: 'Pricing', href: '/membership' },
-      { label: 'Join free', href: '/signup' },
-    ],
-  },
-  {
     title: 'Community',
     links: [
       { label: 'About', href: '/about' },
-      { label: 'Field Journal', href: '/journal' },
-      { label: 'Events', href: '/dashboard' },
-    ],
-  },
-  {
-    title: 'Shop',
-    links: [
-      { label: 'All Gear', href: '/shop' },
-      { label: 'Apparel', href: '/shop' },
-      { label: 'Accessories', href: '/shop' },
+      { label: 'Join free', href: '/signup' },
     ],
   },
   {
     title: 'Account',
     links: [
       { label: 'Sign In', href: '/signin' },
-      { label: 'Dashboard', href: '/dashboard' },
-      { label: 'Order History', href: '/dashboard' },
+      { label: 'Today', href: '/today' },
     ],
   },
 ];

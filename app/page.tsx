@@ -26,13 +26,6 @@ const PILLARS = [
   },
 ];
 
-const PRODUCTS = [
-  { name: 'EE Signature Hat', sub: 'Midnight Black / Gold', price: '$35', tone: 'dark' as const },
-  { name: 'Foundation Tee', sub: 'Engineered Cotton', price: '$45', tone: 'paper' as const },
-  { name: 'System Hoodie', sub: 'Charcoal Gray', price: '$85', tone: 'cool' as const },
-  { name: 'Tech Vessel', sub: 'Insulated Steel', price: '$40', tone: 'warm' as const },
-];
-
 const GRID_PHOTOS = [
   { tone: 'court' as const, label: 'SOCIETY HOOPS · WED LEAGUE', span: 'span 2 / span 2' },
   { tone: 'paper' as const, label: 'WELLNESS RETREAT · CATSKILLS', span: '' },
@@ -82,11 +75,11 @@ export default function LandingPage() {
               Create your account
             </Link>
             <Link
-              href="/journal"
+              href="/about"
               className="ee-btn ee-btn-ghost"
               style={{ color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}
             >
-              Read the journal
+              Read our story
             </Link>
           </div>
         </div>
@@ -145,7 +138,7 @@ export default function LandingPage() {
               </div>
               <h3 className="ee-h3" style={{ marginTop: 'auto' }}>{p.title}</h3>
               <p className="ee-body" style={{ fontSize: 14 }}>{p.body}</p>
-              <Link href="/membership" className="ee-btn-link" style={{ alignSelf: 'flex-start' }}>
+              <Link href="/about" className="ee-btn-link" style={{ alignSelf: 'flex-start' }}>
                 Read more →
               </Link>
             </div>
@@ -217,47 +210,6 @@ export default function LandingPage() {
           <EEPhoto tone="warm" label="NETWORKING · DUMBO LOFT" />
           <EEPhoto tone="dark" label="DEEP-TECH WORKSHOP" />
           <EEPhoto tone="cool" label="FIELD JOURNAL · ISSUE 12" />
-        </div>
-      </section>
-
-      {/* SHOP TEASER */}
-      <section className="ee-section" style={{ background: 'var(--ee-lavender-2)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56, flexWrap: 'wrap', gap: 16 }}>
-          <div>
-            <div className="ee-eyebrow">THE SHOP</div>
-            <h2 className="ee-h2" style={{ marginTop: 16 }}>Wear the Movement</h2>
-          </div>
-          <Link href="/shop" className="ee-btn-link">View all gear ↗</Link>
-        </div>
-        <div className="ee-grid-col4">
-          {PRODUCTS.map((p) => (
-            <Link
-              key={p.name}
-              href="/shop"
-              style={{
-                background: 'var(--ee-paper)',
-                borderRadius: 8,
-                overflow: 'hidden',
-                border: '1px solid var(--ee-line)',
-                display: 'block',
-              }}
-              className="ee-card-hover"
-            >
-              <EEPhoto
-                tone={p.tone}
-                label={p.name.toUpperCase()}
-                style={{ aspectRatio: '1/1', borderRadius: 0 }}
-                className="ee-product-img"
-              />
-              <div style={{ padding: '18px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 15 }}>{p.name}</div>
-                  <div className="ee-small" style={{ marginTop: 2 }}>{p.sub}</div>
-                </div>
-                <div style={{ color: 'var(--ee-gold-deep)', fontWeight: 700, fontSize: 15 }}>{p.price}</div>
-              </div>
-            </Link>
-          ))}
         </div>
       </section>
 

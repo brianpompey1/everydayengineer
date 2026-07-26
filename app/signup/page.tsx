@@ -41,6 +41,7 @@ export default function SignUpPage() {
   const [email, setEmail]         = useState('');
   const [password, setPassword]   = useState('');
   const [code, setCode]           = useState('');
+  const [role, setRole]           = useState('');
   const [agreed, setAgreed]       = useState(true);
   const [error, setError]         = useState('');
   const [loading, setLoading]     = useState(false);
@@ -75,6 +76,13 @@ export default function SignUpPage() {
       const result = await signUp.attemptEmailAddressVerification({ code });
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        if (role.trim()) {
+          await fetch('/api/onboarding', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ discipline: role.trim() }),
+          });
+        }
         router.push('/today');
       } else {
         setError('Verification incomplete. Please try again.');
@@ -224,6 +232,10 @@ export default function SignUpPage() {
             <div>
               <label className="ee-label">Password</label>
               <input className="ee-input" type="password" placeholder="At least 8 characters" value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
+            <div>
+              <label className="ee-label">Engineer type / role</label>
+              <input className="ee-input" placeholder="e.g. Backend Engineer, Product Designer" value={role} onChange={e => setRole(e.target.value)} required />
             </div>
 
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: 'var(--ee-ink-2)', marginTop: 4, cursor: 'pointer' }}>

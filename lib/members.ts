@@ -54,3 +54,12 @@ export async function getOrCreateMember(clerkUser: ClerkUserInput): Promise<Memb
 export function isProfileComplete(member: Member): boolean {
   return Boolean(member.bio && member.discipline);
 }
+
+export async function setMemberDiscipline(clerkId: string, discipline: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('members')
+    .update({ discipline })
+    .eq('clerk_id', clerkId);
+
+  if (error) throw error;
+}

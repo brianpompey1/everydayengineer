@@ -130,7 +130,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
           {activeCategory === 'All' && activeState === 'All' && activeUniversity === 'All' && featured && (
             <section style={{ padding: '40px 56px 24px' }}>
               <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)', marginBottom: 14 }}>FEATURED · UP NEXT</div>
-              <Link href={`/events/${featured.id}`} style={{ display: 'grid', gridTemplateColumns: '5fr 4fr', background: 'var(--ee-paper)', border: '1px solid var(--ee-line)', borderRadius: 12, overflow: 'hidden' }} className="ee-card-hover">
+              <Link href={`/events/${featured.id}`} className="ee-featured-grid ee-card-hover" style={{ background: 'var(--ee-paper)', border: '1px solid var(--ee-line)', borderRadius: 12, overflow: 'hidden' }}>
                 <EEPhoto tone="warm" label={(featured.category ?? '').toUpperCase()} style={{ aspectRatio: '5/3', borderRadius: 0 }} />
                 <div style={{ padding: 36, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
@@ -164,30 +164,29 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                   <Link
                     key={e.id}
                     href={`/events/${e.id}`}
-                    className="ee-card ee-card-hover"
-                    style={{ display: 'grid', gridTemplateColumns: '80px 72px 1fr 160px 110px', gap: 20, padding: '18px 22px', alignItems: 'center' }}
+                    className="ee-card ee-card-hover ee-event-row"
                   >
-                    <div style={{ textAlign: 'center', borderRight: '1px solid var(--ee-line)', paddingRight: 14 }}>
+                    <div className="ee-event-date" style={{ textAlign: 'center', borderRight: '1px solid var(--ee-line)', paddingRight: 14 }}>
                       <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>{date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</div>
                       <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{date.getDate()}</div>
                       <div className="ee-small" style={{ fontSize: 10, marginTop: 4 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</div>
                     </div>
-                    <EEPhoto tone={TONES[i % TONES.length]} label="" style={{ aspectRatio: '1/1', borderRadius: 6 }} />
-                    <div>
+                    <EEPhoto tone={TONES[i % TONES.length]} label="" className="ee-event-photo" style={{ aspectRatio: '1/1', borderRadius: 6 }} />
+                    <div className="ee-event-info">
                       {e.category && (
                         <div style={{ marginBottom: 6 }}>
                           <span className="ee-tag" style={{ background: 'var(--ee-lavender-2)', fontSize: 10 }}>{e.category}</span>
                         </div>
                       )}
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{e.title}</div>
-                      <div className="ee-small" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div className="ee-small" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
                         <Icon d={PIN} size={11} /> {e.location ?? 'Location TBA'} · {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
                       </div>
                     </div>
-                    <div>
+                    <div className="ee-event-capacity">
                       {e.capacity != null ? (
                         <>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 6 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 6, gap: 8 }}>
                             <span className="ee-mono" style={{ fontSize: 10 }}>{e.going} / {e.capacity}</span>
                             {almostFull && <span className="ee-mono" style={{ color: 'var(--ee-gold-deep)', fontSize: 10 }}>ALMOST FULL</span>}
                             {full && <span className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>FULL</span>}
@@ -200,7 +199,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                         <span className="ee-small">{e.going} going</span>
                       )}
                     </div>
-                    <div style={{ textAlign: 'right' }}>
+                    <div className="ee-event-action" style={{ textAlign: 'right' }}>
                       {e.rsvpStatus
                         ? <span className="ee-tag ee-tag-gold">RSVP'd ✓</span>
                         : full

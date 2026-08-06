@@ -555,3 +555,36 @@ a { color: inherit; text-decoration: none; }
   .ee-signin-manifesto,
   .ee-signup-panel { order: 2; }
 }
+
+/* ── Events page ── */
+.ee-featured-grid { display: grid; grid-template-columns: 5fr 4fr; }
+
+.ee-event-row {
+  display: grid;
+  grid-template-columns: 80px 72px 1fr 160px 110px;
+  gap: 20px;
+  padding: 18px 22px;
+  align-items: center;
+}
+.ee-event-photo { display: block; }
+.ee-event-date { grid-area: date; }
+.ee-event-info { grid-area: info; }
+.ee-event-capacity { grid-area: capacity; }
+.ee-event-action { grid-area: action; }
+
+@media (max-width: 767px) {
+  .ee-featured-grid { grid-template-columns: 1fr; }
+
+  .ee-event-row {
+    grid-template-columns: 56px 1fr;
+    grid-template-areas:
+      "date info"
+      "date capacity"
+      "date action";
+    gap: 6px 16px;
+    padding: 16px;
+  }
+  .ee-event-photo { display: none; }
+  .ee-event-action { justify-self: start; margin-top: 4px; }
+  .ee-event-date { padding-right: 8px !important; }
+}

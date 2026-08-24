@@ -22,9 +22,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Everyday Engineer — Engineering Culture, Reimagined.',
+  title: 'Everyday Engineer Club — Engineering Culture, Reimagined.',
   description:
-    'A curated community where technical excellence meets lifestyle elevation. Engineers, founders, and creatives. New York, NY.',
+    'Everyday Engineer Club is a lifestyle community for engineers and ambitious professionals who are building more than just their careers. New York, NY.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

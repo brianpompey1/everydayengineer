@@ -37,7 +37,7 @@ export default function EEFooter() {
               maxWidth: 320,
             }}
           >
-            A curated community where technical excellence meets lifestyle elevation. New York, NY.
+            A lifestyle community for engineers and ambitious professionals building more than just their careers. New York, NY.
           </p>
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
             {SOCIAL.map((s) => (

@@ -148,11 +148,14 @@ export default function LandingPage() {
 
       {/* FOUNDER */}
       <section className="ee-section ee-grid-founder">
-        <EEPhoto
-          tone="warm"
-          label="PORTRAIT · GUITRY GERMAIN, FOUNDER"
-          style={{ aspectRatio: '4/5', borderRadius: 8 }}
-        />
+        <div style={{ position: 'relative', aspectRatio: '4/5', borderRadius: 8, overflow: 'hidden' }}>
+          <Image
+            src="/founder.png"
+            alt="Guitry Germain, Founder"
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'top' }}
+          />
+        </div>
         <div>
           <div className="ee-eyebrow">THE FOUNDER</div>
           <h2 className="ee-h2" style={{ marginTop: 16, fontSize: 64 }}>

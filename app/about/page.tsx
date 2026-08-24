@@ -1,7 +1,7 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import EENav from '../components/EENav';
 import EEFooter from '../components/EEFooter';
-import EEPhoto from '../components/EEPhoto';
 
 export default function AboutPage() {
   return (
@@ -37,11 +37,14 @@ export default function AboutPage() {
             alignItems: 'center',
           }}
         >
-          <EEPhoto
-            tone="warm"
-            label="GUITRY GERMAIN · FOUNDER"
-            style={{ aspectRatio: '4/5' }}
-          />
+          <div style={{ position: 'relative', aspectRatio: '4/5', borderRadius: 8, overflow: 'hidden' }}>
+            <Image
+              src="/founder.png"
+              alt="Guitry Germain, Founder"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'top' }}
+            />
+          </div>
           <div>
             <div className="ee-eyebrow">THE FOUNDER</div>
             <h1

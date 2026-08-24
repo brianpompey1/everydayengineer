@@ -57,7 +57,7 @@ export default function LandingPage() {
         />
         <div className="ee-hero-inner">
           <div className="ee-mono" style={{ color: 'var(--ee-gold)', marginBottom: 20 }}>
-            EST. 2024 · NEW YORK, NY
+            EST. 2025 · NEW YORK, NY
           </div>
           <h1 className="ee-h1 ee-hero-headline">
             Engineering<br />
@@ -68,7 +68,7 @@ export default function LandingPage() {
             className="ee-body"
             style={{ color: 'rgba(255,255,255,0.78)', maxWidth: 520, marginTop: 28, fontSize: 18 }}
           >
-            A curated community where technical excellence meets lifestyle elevation. Join the collective of everyday engineers shaping the future.
+            Everyday Engineer Club is a lifestyle community for engineers and ambitious professionals who are building more than just their careers.
           </p>
           <div style={{ display: 'flex', gap: 14, marginTop: 36, flexWrap: 'wrap' }}>
             <Link href="/signup" className="ee-btn ee-btn-primary">
@@ -159,24 +159,13 @@ export default function LandingPage() {
             Meet Guitry<br />Germain
           </h2>
           <p className="ee-body" style={{ marginTop: 28, fontSize: 17 }}>
-            Guitry Germain founded Emerging Estates with a single mission: to provide the modern engineer with a space that honors both their technical intellect and their human potential.
+            Everyday Engineer Club started with a simple belief: engineers deserve a community outside of work.
           </p>
-          <blockquote
-            style={{
-              margin: '36px 0',
-              padding: '0 0 0 28px',
-              borderLeft: '3px solid var(--ee-gold)',
-              fontFamily: 'var(--ee-display)',
-              fontStyle: 'italic',
-              fontSize: 24,
-              lineHeight: 1.35,
-              color: 'var(--ee-ink)',
-            }}
-          >
-            "We spend our lives building systems for the world; it's time we engineered a community for ourselves."
-          </blockquote>
-          <p className="ee-body" style={{ fontSize: 15 }}>
-            With a background in complex systems and a passion for elite performance, Guitry has curated an ecosystem that prioritizes depth, connection, and the pursuit of mastery.
+          <p className="ee-body" style={{ marginTop: 20, fontSize: 15 }}>
+            After spending years working on major infrastructure projects while creating content that showed the everyday life of an engineer, Guitry saw an opportunity to build something different—a community where engineers could connect beyond the workplace through movement, conversation, creativity, and shared experiences.
+          </p>
+          <p className="ee-body" style={{ marginTop: 20, fontSize: 15 }}>
+            Today, Everyday Engineer Club exists to celebrate engineering culture and bring together people who are building both their careers and themselves.
           </p>
           <div style={{ display: 'flex', gap: 14, marginTop: 32 }}>
             <Link href="/about" className="ee-btn ee-btn-dark">

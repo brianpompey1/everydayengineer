@@ -24,6 +24,14 @@ export default function SignInPage() {
   const [loading, setLoading] = useState(false);
   const [authBlocked, setAuthBlocked] = useState(false);
 
+  // Two-factor step. Accounts with 2FA enabled return `needs_second_factor`
+  // from signIn.create() and must complete a second challenge before the
+  // session can be activated.
+  const [step, setStep] = useState<'credentials' | 'second-factor'>('credentials');
+  const [secondFactorStrategy, setSecondFactorStrategy] =
+    useState<'totp' | 'phone_code' | 'backup_code'>('totp');
+  const [code, setCode] = useState('');
+
   // If Clerk's SDK hasn't initialized after a few seconds it is almost always
   // being blocked (ad blocker / privacy extension / network). Surface that
   // instead of leaving the sign-in button silently inert.
@@ -54,6 +62,19 @@ export default function SignInPage() {
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
         router.push('/today');
+      } else if (result.status === 'needs_second_factor') {
+        const supported = result.supportedSecondFactors ?? [];
+        const has = (s: string) => supported.some((f) => f.strategy === s);
+
+        if (has('totp')) {
+          setSecondFactorStrategy('totp');
+        } else if (has('phone_code')) {
+          await signIn.prepareSecondFactor({ strategy: 'phone_code' });
+          setSecondFactorStrategy('phone_code');
+        } else {
+          setSecondFactorStrategy('backup_code');
+        }
+        setStep('second-factor');
       } else {
         setError(`Additional verification is required to finish signing in (${result.status}).`);
       }
@@ -63,6 +84,39 @@ export default function SignInPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSecondFactor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded) {
+      setError("Sign-in isn't ready yet. Please refresh and try again.");
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: secondFactorStrategy,
+        code,
+      });
+      if (result.status === 'complete') {
+        await setActive({ session: result.createdSessionId });
+        router.push('/today');
+      } else {
+        setError(`Could not finish signing in (${result.status}).`);
+      }
+    } catch (err: unknown) {
+      const clerkErr = err as { errors?: { message: string }[] };
+      setError(clerkErr.errors?.[0]?.message ?? 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const secondFactorCopy: Record<typeof secondFactorStrategy, { title: string; hint: string }> = {
+    totp:        { title: 'Two-factor authentication', hint: 'Enter the 6-digit code from your authenticator app.' },
+    phone_code:  { title: 'Check your phone',          hint: 'Enter the 6-digit code we just texted you.' },
+    backup_code: { title: 'Enter a backup code',       hint: 'Use one of the backup codes you saved when enabling 2FA.' },
   };
 
   return (
@@ -142,12 +196,14 @@ export default function SignInPage() {
 
         {/* Right — form */}
         <div className="ee-signin-form" style={{ background: 'var(--ee-paper)', color: 'var(--ee-ink)', padding: '80px 64px', position: 'relative' }}>
-          <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>CREDENTIALS</div>
+          <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>
+            {step === 'second-factor' ? 'VERIFICATION' : 'CREDENTIALS'}
+          </div>
           <h2 style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 56, fontWeight: 400, margin: '16px 0 32px', letterSpacing: '-0.02em' }}>
-            Sign in.
+            {step === 'second-factor' ? 'Verify.' : 'Sign in.'}
           </h2>
 
-          {authBlocked && (
+          {authBlocked && step === 'credentials' && (
             <div style={{ marginBottom: 24, padding: '14px 16px', background: 'rgba(184,140,14,0.12)', border: '1px solid var(--ee-gold-deep)', borderRadius: 6, fontSize: 13, lineHeight: 1.5, color: 'var(--ee-ink-2)' }}>
               <strong style={{ color: 'var(--ee-ink)' }}>Sign-in didn&apos;t load.</strong> This is usually an ad blocker or
               privacy extension blocking our authentication provider. Try disabling it for this
@@ -155,39 +211,101 @@ export default function SignInPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div>
-                <label className="ee-label">Email</label>
-                <input className="ee-input-underline" type="email" placeholder="you@domain.com" required value={email} onChange={e => setEmail(e.target.value)} />
-              </div>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className="ee-label">Password</label>
-                  <Link href="#" className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>Forgot?</Link>
+          {step === 'credentials' ? (
+            <form onSubmit={handleSubmit}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label className="ee-label">Email</label>
+                  <input className="ee-input-underline" type="email" placeholder="you@domain.com" required value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
-                <input className="ee-input-underline" type="password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
-              </div>
-
-              {error && (
-                <div style={{ color: '#C0392B', fontSize: 13, padding: '10px 14px', background: 'rgba(192,57,43,0.08)', borderRadius: 4 }}>
-                  {error}
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label className="ee-label">Password</label>
+                    <Link href="#" className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>Forgot?</Link>
+                  </div>
+                  <input className="ee-input-underline" type="password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
-              )}
 
-              <button
-                type="submit"
-                className="ee-btn ee-btn-dark"
-                disabled={loading}
-                style={{ marginTop: 16, padding: '20px', fontSize: 14, fontFamily: 'var(--ee-mono)', letterSpacing: '0.18em', width: '100%', opacity: loading ? 0.7 : 1 }}
-              >
-                {loading ? 'SIGNING IN…' : 'SIGN IN →'}
-              </button>
-            </div>
-          </form>
+                {error && (
+                  <div style={{ color: '#C0392B', fontSize: 13, padding: '10px 14px', background: 'rgba(192,57,43,0.08)', borderRadius: 4 }}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="ee-btn ee-btn-dark"
+                  disabled={loading}
+                  style={{ marginTop: 16, padding: '20px', fontSize: 14, fontFamily: 'var(--ee-mono)', letterSpacing: '0.18em', width: '100%', opacity: loading ? 0.7 : 1 }}
+                >
+                  {loading ? 'SIGNING IN…' : 'SIGN IN →'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSecondFactor}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <p className="ee-body" style={{ fontSize: 15, marginTop: -8 }}>
+                  {secondFactorCopy[secondFactorStrategy].hint}
+                </p>
+
+                <div>
+                  <label className="ee-label">{secondFactorCopy[secondFactorStrategy].title}</label>
+                  <input
+                    className="ee-input-underline"
+                    inputMode={secondFactorStrategy === 'backup_code' ? 'text' : 'numeric'}
+                    autoComplete="one-time-code"
+                    placeholder={secondFactorStrategy === 'backup_code' ? 'backup code' : '123456'}
+                    required
+                    autoFocus
+                    value={code}
+                    onChange={e => setCode(e.target.value)}
+                    style={{ fontSize: 22, letterSpacing: '0.2em' }}
+                  />
+                </div>
+
+                {error && (
+                  <div style={{ color: '#C0392B', fontSize: 13, padding: '10px 14px', background: 'rgba(192,57,43,0.08)', borderRadius: 4 }}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="ee-btn ee-btn-dark"
+                  disabled={loading || !code.trim()}
+                  style={{ marginTop: 16, padding: '20px', fontSize: 14, fontFamily: 'var(--ee-mono)', letterSpacing: '0.18em', width: '100%', opacity: loading ? 0.7 : 1 }}
+                >
+                  {loading ? 'VERIFYING…' : 'VERIFY →'}
+                </button>
+
+                {secondFactorStrategy !== 'backup_code' && (
+                  <button
+                    type="button"
+                    onClick={() => { setSecondFactorStrategy('backup_code'); setCode(''); setError(''); }}
+                    className="ee-mono"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ee-ink-3)', fontSize: 10, padding: 0 }}
+                  >
+                    Use a backup code instead
+                  </button>
+                )}
+              </div>
+            </form>
+          )}
 
           <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--ee-line)', display: 'flex', justifyContent: 'space-between' }}>
-            <Link href="/signup" className="ee-mono" style={{ color: 'var(--ee-ink-2)' }}>← Create account</Link>
+            {step === 'second-factor' ? (
+              <button
+                type="button"
+                onClick={() => { setStep('credentials'); setCode(''); setError(''); }}
+                className="ee-mono"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ee-ink-2)', padding: 0 }}
+              >
+                ← Back
+              </button>
+            ) : (
+              <Link href="/signup" className="ee-mono" style={{ color: 'var(--ee-ink-2)' }}>← Create account</Link>
+            )}
             <span className="ee-mono" style={{ color: 'var(--ee-ink-3)' }}>Need help? →</span>
           </div>
         </div>

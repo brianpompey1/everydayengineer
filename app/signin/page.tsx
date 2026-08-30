@@ -29,7 +29,7 @@ export default function SignInPage() {
   // session can be activated.
   const [step, setStep] = useState<'credentials' | 'second-factor'>('credentials');
   const [secondFactorStrategy, setSecondFactorStrategy] =
-    useState<'totp' | 'phone_code' | 'backup_code'>('totp');
+    useState<'totp' | 'phone_code' | 'email_code' | 'backup_code'>('totp');
   const [availableFactors, setAvailableFactors] = useState<string[]>([]);
   const [code, setCode] = useState('');
 
@@ -93,6 +93,9 @@ export default function SignInPage() {
         } else if (has('phone_code')) {
           await signIn.prepareSecondFactor({ strategy: 'phone_code' });
           setSecondFactorStrategy('phone_code');
+        } else if (has('email_code')) {
+          await signIn.prepareSecondFactor({ strategy: 'email_code' });
+          setSecondFactorStrategy('email_code');
         } else {
           setSecondFactorStrategy('backup_code');
         }
@@ -138,6 +141,7 @@ export default function SignInPage() {
   const secondFactorCopy: Record<typeof secondFactorStrategy, { title: string; hint: string }> = {
     totp:        { title: 'Two-factor authentication', hint: 'Enter the 6-digit code from your authenticator app.' },
     phone_code:  { title: 'Check your phone',          hint: 'Enter the 6-digit code we just texted you.' },
+    email_code:  { title: 'Check your email',          hint: 'Enter the 6-digit verification code we just emailed you.' },
     backup_code: { title: 'Enter a backup code',       hint: 'Use one of the backup codes you saved when enabling 2FA.' },
   };
 
@@ -293,6 +297,12 @@ export default function SignInPage() {
                         Text me a code
                       </button>
                     )}
+                    {availableFactors.includes('email_code') && (
+                      <button type="button" onClick={async () => { await signIn?.prepareSecondFactor({ strategy: 'email_code' }); setSecondFactorStrategy('email_code'); setCode(''); setError(''); }}
+                        className="ee-tag" style={{ cursor: 'pointer', border: 'none', background: secondFactorStrategy === 'email_code' ? 'var(--ee-navy-900)' : 'var(--ee-lavender-2)', color: secondFactorStrategy === 'email_code' ? 'var(--ee-paper)' : 'var(--ee-ink-2)' }}>
+                        Email me a code
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -326,7 +336,26 @@ export default function SignInPage() {
                   {loading ? 'VERIFYING…' : 'VERIFY →'}
                 </button>
 
-                {secondFactorStrategy !== 'backup_code' && (
+                {(secondFactorStrategy === 'email_code' || secondFactorStrategy === 'phone_code') && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setError('');
+                      try {
+                        await signIn?.prepareSecondFactor({ strategy: secondFactorStrategy });
+                        setError('A new code is on its way.');
+                      } catch {
+                        setError('Could not resend the code. Please try again.');
+                      }
+                    }}
+                    className="ee-mono"
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ee-ink-3)', fontSize: 10, padding: 0 }}
+                  >
+                    Resend code
+                  </button>
+                )}
+
+                {availableFactors.includes('backup_code') && secondFactorStrategy !== 'backup_code' && (
                   <button
                     type="button"
                     onClick={() => { setSecondFactorStrategy('backup_code'); setCode(''); setError(''); }}

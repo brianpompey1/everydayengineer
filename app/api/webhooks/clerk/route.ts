@@ -2,6 +2,7 @@ import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getOrCreateMember } from '@/lib/members';
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -36,14 +37,17 @@ export async function POST(req: Request) {
 
   if (evt.type === 'user.created') {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data;
-    const email = email_addresses?.[0]?.email_address;
+    const email = email_addresses?.[0]?.email_address ?? '';
     const full_name = [first_name, last_name].filter(Boolean).join(' ') || null;
 
-    await supabaseAdmin.from('members').insert({
-      clerk_id: id,
+    // Use the shared helper rather than a blind insert: members.email is
+    // UNIQUE, so a returning user whose Clerk id changed (e.g. after the
+    // dev -> production instance switch) would otherwise fail the insert.
+    await getOrCreateMember({
+      id,
       email,
-      full_name,
-      avatar_url: image_url,
+      fullName: full_name,
+      avatarUrl: image_url ?? null,
     });
   }
 

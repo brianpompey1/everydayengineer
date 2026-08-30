@@ -36,6 +36,37 @@ export async function getOrCreateMember(clerkUser: ClerkUserInput): Promise<Memb
   if (fetchError) throw fetchError;
   if (existing) return existing as Member;
 
+  // No row for this clerk_id. A row may still exist under the same email —
+  // most commonly because the Clerk instance changed (dev -> production issues
+  // brand new user ids for the same people). members.email is UNIQUE, so
+  // inserting blindly would throw. Re-link the existing row instead.
+  if (clerkUser.email) {
+    const { data: byEmail, error: emailFetchError } = await supabaseAdmin
+      .from('members')
+      .select('*')
+      .eq('email', clerkUser.email)
+      .maybeSingle();
+
+    if (emailFetchError) throw emailFetchError;
+
+    if (byEmail) {
+      const { data: relinked, error: relinkError } = await supabaseAdmin
+        .from('members')
+        .update({
+          clerk_id: clerkUser.id,
+          full_name: clerkUser.fullName ?? byEmail.full_name,
+          avatar_url: clerkUser.avatarUrl ?? byEmail.avatar_url,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', byEmail.id)
+        .select('*')
+        .single();
+
+      if (relinkError) throw relinkError;
+      return relinked as Member;
+    }
+  }
+
   const { data: created, error: insertError } = await supabaseAdmin
     .from('members')
     .insert({

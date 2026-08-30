@@ -73,10 +73,36 @@ export default function SignUpPage() {
       setError('Please accept the Code of Conduct and Privacy Policy to continue.');
       return;
     }
+    // Browser autofill can populate these inputs without firing React's
+    // onChange, leaving state empty while the fields visibly show values.
+    // Read the DOM as the source of truth, fall back to state.
+    const form = e.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const val = (k: string, fallback: string) =>
+      ((data.get(k) as string) ?? '') || fallback || '';
+
+    const firstNameV = val('firstName', firstName).trim();
+    const lastNameV  = val('lastName', lastName).trim();
+    const emailV     = val('email', email).trim();
+    const passwordV  = val('password', password);
+    const roleV      = val('role', role).trim();
+
+    if (!emailV || !passwordV) {
+      setError('Please enter both your email and password.');
+      return;
+    }
+    if (roleV && roleV !== role) setRole(roleV);
+    if (emailV !== email) setEmail(emailV);
+
     setLoading(true);
     setError('');
     try {
-      await signUp.create({ firstName, lastName, emailAddress: email, password });
+      await signUp.create({
+        firstName: firstNameV,
+        lastName: lastNameV,
+        emailAddress: emailV,
+        password: passwordV,
+      });
 
       // Trigger email verification code
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
@@ -252,24 +278,24 @@ export default function SignUpPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div>
                 <label className="ee-label">First name</label>
-                <input className="ee-input" placeholder="Marcus" value={firstName} onChange={e => setFirstName(e.target.value)} required />
+                <input className="ee-input" name="firstName" autoComplete="given-name" placeholder="Marcus" value={firstName} onChange={e => setFirstName(e.target.value)} required />
               </div>
               <div>
                 <label className="ee-label">Last name</label>
-                <input className="ee-input" placeholder="Chen" value={lastName} onChange={e => setLastName(e.target.value)} required />
+                <input className="ee-input" name="lastName" autoComplete="family-name" placeholder="Chen" value={lastName} onChange={e => setLastName(e.target.value)} required />
               </div>
             </div>
             <div>
               <label className="ee-label">Email</label>
-              <input className="ee-input" type="email" placeholder="you@domain.com" value={email} onChange={e => setEmail(e.target.value)} required />
+              <input className="ee-input" name="email" type="email" autoComplete="email" placeholder="you@domain.com" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <div>
               <label className="ee-label">Password</label>
-              <input className="ee-input" type="password" placeholder="At least 8 characters" value={password} onChange={e => setPassword(e.target.value)} required />
+              <input className="ee-input" name="password" type="password" autoComplete="new-password" placeholder="At least 8 characters" value={password} onChange={e => setPassword(e.target.value)} required />
             </div>
             <div>
               <label className="ee-label">Engineer type / role</label>
-              <input className="ee-input" placeholder="e.g. Backend Engineer, Product Designer" value={role} onChange={e => setRole(e.target.value)} required />
+              <input className="ee-input" name="role" autoComplete="organization-title" placeholder="e.g. Backend Engineer, Product Designer" value={role} onChange={e => setRole(e.target.value)} required />
             </div>
 
             <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 13, color: 'var(--ee-ink-2)', marginTop: 4, cursor: 'pointer' }}>

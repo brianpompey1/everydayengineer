@@ -53,13 +53,32 @@ export default function SignInPage() {
       );
       return;
     }
+    // Browser autofill (notably Chrome) can populate these inputs without
+    // firing React's onChange, leaving state empty while the field visibly
+    // shows a value. Read the DOM as the source of truth, fall back to state.
+    const form = e.currentTarget as HTMLFormElement;
+    const data = new FormData(form);
+    const identifier = ((data.get('identifier') as string) || email || '').trim();
+    const secret = (data.get('password') as string) || password || '';
+
+    if (!identifier || !secret) {
+      setError('Please enter both your email and password.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
       const result = await signIn.create({
-        identifier: email,
-        password,
+        identifier,
+        password: secret,
       });
+      if (process.env.NODE_ENV !== 'production' || typeof window !== 'undefined') {
+        console.info('[signin] status:', result.status, {
+          firstFactors: result.supportedFirstFactors?.map((f) => f.strategy),
+          secondFactors: result.supportedSecondFactors?.map((f) => f.strategy),
+        });
+      }
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
         router.push('/today');
@@ -219,14 +238,14 @@ export default function SignInPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 <div>
                   <label className="ee-label">Email</label>
-                  <input className="ee-input-underline" type="email" placeholder="you@domain.com" required value={email} onChange={e => setEmail(e.target.value)} />
+                  <input className="ee-input-underline" name="identifier" type="email" autoComplete="username" placeholder="you@domain.com" required value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <label className="ee-label">Password</label>
                     <Link href="#" className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>Forgot?</Link>
                   </div>
-                  <input className="ee-input-underline" type="password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
+                  <input className="ee-input-underline" name="password" type="password" autoComplete="current-password" placeholder="••••••••" required value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
 
                 {error && (

@@ -30,6 +30,7 @@ export default function SignInPage() {
   const [step, setStep] = useState<'credentials' | 'second-factor'>('credentials');
   const [secondFactorStrategy, setSecondFactorStrategy] =
     useState<'totp' | 'phone_code' | 'backup_code'>('totp');
+  const [availableFactors, setAvailableFactors] = useState<string[]>([]);
   const [code, setCode] = useState('');
 
   // If Clerk's SDK hasn't initialized after a few seconds it is almost always
@@ -64,7 +65,9 @@ export default function SignInPage() {
         router.push('/today');
       } else if (result.status === 'needs_second_factor') {
         const supported = result.supportedSecondFactors ?? [];
-        const has = (s: string) => supported.some((f) => f.strategy === s);
+        const strategies: string[] = supported.map((f) => f.strategy);
+        setAvailableFactors(strategies);
+        const has = (s: string) => strategies.includes(s);
 
         if (has('totp')) {
           setSecondFactorStrategy('totp');
@@ -248,6 +251,31 @@ export default function SignInPage() {
                 <p className="ee-body" style={{ fontSize: 15, marginTop: -8 }}>
                   {secondFactorCopy[secondFactorStrategy].hint}
                 </p>
+
+                {availableFactors.length === 0 && (
+                  <div style={{ padding: '12px 14px', background: 'rgba(184,140,14,0.12)', border: '1px solid var(--ee-gold-deep)', borderRadius: 6, fontSize: 13, lineHeight: 1.5, color: 'var(--ee-ink-2)' }}>
+                    This account requires two-factor authentication, but no authenticator app or
+                    phone is enrolled — only a backup code will work. If you don&apos;t have one,
+                    an admin can reset two-factor for your account.
+                  </div>
+                )}
+
+                {availableFactors.length > 1 && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {availableFactors.includes('totp') && (
+                      <button type="button" onClick={() => { setSecondFactorStrategy('totp'); setCode(''); setError(''); }}
+                        className="ee-tag" style={{ cursor: 'pointer', border: 'none', background: secondFactorStrategy === 'totp' ? 'var(--ee-navy-900)' : 'var(--ee-lavender-2)', color: secondFactorStrategy === 'totp' ? 'var(--ee-paper)' : 'var(--ee-ink-2)' }}>
+                        Authenticator app
+                      </button>
+                    )}
+                    {availableFactors.includes('phone_code') && (
+                      <button type="button" onClick={async () => { await signIn?.prepareSecondFactor({ strategy: 'phone_code' }); setSecondFactorStrategy('phone_code'); setCode(''); setError(''); }}
+                        className="ee-tag" style={{ cursor: 'pointer', border: 'none', background: secondFactorStrategy === 'phone_code' ? 'var(--ee-navy-900)' : 'var(--ee-lavender-2)', color: secondFactorStrategy === 'phone_code' ? 'var(--ee-paper)' : 'var(--ee-ink-2)' }}>
+                        Text me a code
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <label className="ee-label">{secondFactorCopy[secondFactorStrategy].title}</label>

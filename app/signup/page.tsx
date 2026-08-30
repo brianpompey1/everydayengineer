@@ -45,11 +45,34 @@ export default function SignUpPage() {
   const [agreed, setAgreed]       = useState(true);
   const [error, setError]         = useState('');
   const [loading, setLoading]     = useState(false);
+  const [authBlocked, setAuthBlocked] = useState(false);
+
+  // If Clerk's SDK hasn't initialized after a few seconds it is almost always
+  // being blocked (ad blocker / privacy extension / network). Surface that
+  // instead of leaving the submit button silently inert.
+  useEffect(() => {
+    if (isLoaded) {
+      setAuthBlocked(false);
+      return;
+    }
+    const timer = setTimeout(() => setAuthBlocked(true), 8000);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
+  const notReadyMessage =
+    "Sign-up isn't ready yet. If this keeps happening, an ad blocker or privacy extension is likely blocking it — disable it for this site, or try another browser.";
 
   // Step 1 — create account
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLoaded || !agreed) return;
+    if (!isLoaded) {
+      setError(notReadyMessage);
+      return;
+    }
+    if (!agreed) {
+      setError('Please accept the Code of Conduct and Privacy Policy to continue.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -69,7 +92,10 @@ export default function SignUpPage() {
   // Step 2 — verify email code
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isLoaded) {
+      setError(notReadyMessage);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -213,6 +239,14 @@ export default function SignUpPage() {
           <p className="ee-body" style={{ marginTop: 16 }}>
             Free, always. Get access to the directory, events, and the habit tracker. Takes about a minute.
           </p>
+
+          {authBlocked && (
+            <div style={{ marginTop: 24, padding: '14px 16px', background: 'rgba(184,140,14,0.12)', border: '1px solid var(--ee-gold-deep)', borderRadius: 6, fontSize: 13, lineHeight: 1.5, color: 'var(--ee-ink-2)' }}>
+              <strong style={{ color: 'var(--ee-ink)' }}>Sign-up didn&apos;t load.</strong> This is usually an ad blocker or
+              privacy extension blocking our authentication provider. Try disabling it for this
+              site, using a private window, or a different browser.
+            </div>
+          )}
 
           <form onSubmit={handleSignUp} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 32 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

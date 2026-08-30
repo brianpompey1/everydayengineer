@@ -22,10 +22,28 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
+  const [authBlocked, setAuthBlocked] = useState(false);
+
+  // If Clerk's SDK hasn't initialized after a few seconds it is almost always
+  // being blocked (ad blocker / privacy extension / network). Surface that
+  // instead of leaving the sign-in button silently inert.
+  useEffect(() => {
+    if (isLoaded) {
+      setAuthBlocked(false);
+      return;
+    }
+    const timer = setTimeout(() => setAuthBlocked(true), 8000);
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isLoaded) {
+      setError(
+        "Sign-in isn't ready yet. If this keeps happening, an ad blocker or privacy extension is likely blocking it — disable it for this site, or try another browser."
+      );
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -36,6 +54,8 @@ export default function SignInPage() {
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
         router.push('/today');
+      } else {
+        setError(`Additional verification is required to finish signing in (${result.status}).`);
       }
     } catch (err: unknown) {
       const clerkErr = err as { errors?: { message: string }[] };
@@ -126,6 +146,14 @@ export default function SignInPage() {
           <h2 style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 56, fontWeight: 400, margin: '16px 0 32px', letterSpacing: '-0.02em' }}>
             Sign in.
           </h2>
+
+          {authBlocked && (
+            <div style={{ marginBottom: 24, padding: '14px 16px', background: 'rgba(184,140,14,0.12)', border: '1px solid var(--ee-gold-deep)', borderRadius: 6, fontSize: 13, lineHeight: 1.5, color: 'var(--ee-ink-2)' }}>
+              <strong style={{ color: 'var(--ee-ink)' }}>Sign-in didn&apos;t load.</strong> This is usually an ad blocker or
+              privacy extension blocking our authentication provider. Try disabling it for this
+              site, using a private window, or a different browser.
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

@@ -4,6 +4,8 @@ import { currentUser } from '@clerk/nextjs/server';
 import { revalidatePath } from 'next/cache';
 import { getOrCreateMember, updateMemberProfile, type MemberProfileInput } from '@/lib/members';
 import { submitRsvp, cancelRsvp, type AttendeeType } from '@/lib/rsvps';
+import { getEventById } from '@/lib/events';
+import { sendEmail, spectatorConfirmed, playerRequestReceived } from '@/lib/email';
 
 export interface RsvpActionResult {
   ok: boolean;
@@ -66,6 +68,28 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
       attendeeType: input.attendeeType,
       waiver: input.waiver,
     });
+
+    // Immediate acknowledgement. Approve/waitlist mail is sent later by the
+    // Supabase webhook, since those status changes happen outside the app.
+    // Never let a mail failure fail the RSVP itself.
+    try {
+      const event = await getEventById(input.eventId);
+      if (event && member.email) {
+        const ctx = {
+          eventTitle: event.title,
+          eventDate: event.event_date,
+          location: event.location,
+          memberName: member.full_name,
+        };
+        const mail =
+          input.attendeeType === 'spectator'
+            ? spectatorConfirmed(ctx)
+            : playerRequestReceived(ctx);
+        await sendEmail({ to: member.email, ...mail });
+      }
+    } catch (mailErr) {
+      console.error('[rsvp] confirmation email failed:', mailErr);
+    }
 
     revalidatePath(`/events/${input.eventId}`);
     revalidatePath('/events');

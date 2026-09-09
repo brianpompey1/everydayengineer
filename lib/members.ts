@@ -17,6 +17,55 @@ export interface Member {
   twitter_url: string | null;
   joined_at: string;
   updated_at: string;
+  // Collected on first RSVP, reused for every event after that.
+  phone: string | null;
+  company_or_school: string | null;
+  professional_status: string | null;   // student | graduate | professional
+  shirt_size: string | null;            // S | M | L | XL | XXL
+  is_21_plus: boolean | null;
+  emergency_contact_name: string | null;
+  emergency_contact_phone: string | null;
+  heard_about_us: string | null;
+}
+
+export interface MemberProfileInput {
+  phone?: string;
+  company_or_school?: string;
+  professional_status?: string;
+  discipline?: string;
+  shirt_size?: string;
+  is_21_plus?: boolean;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  heard_about_us?: string;
+}
+
+/** True once we have everything the RSVP flow needs, so we stop re-asking. */
+export function hasRsvpProfile(member: Member): boolean {
+  return Boolean(
+    member.phone &&
+    member.company_or_school &&
+    member.professional_status &&
+    member.shirt_size &&
+    member.is_21_plus !== null
+  );
+}
+
+export async function updateMemberProfile(
+  clerkId: string,
+  profile: MemberProfileInput
+): Promise<void> {
+  const payload = Object.fromEntries(
+    Object.entries(profile).filter(([, v]) => v !== undefined && v !== '')
+  );
+  if (Object.keys(payload).length === 0) return;
+
+  const { error } = await supabaseAdmin
+    .from('members')
+    .update({ ...payload, updated_at: new Date().toISOString() })
+    .eq('clerk_id', clerkId);
+
+  if (error) throw error;
 }
 
 interface ClerkUserInput {

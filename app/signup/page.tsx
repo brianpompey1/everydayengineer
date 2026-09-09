@@ -40,6 +40,7 @@ export default function SignUpPage() {
   const [lastName, setLastName]   = useState('');
   const [email, setEmail]         = useState('');
   const [password, setPassword]   = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [code, setCode]           = useState('');
   const [role, setRole]           = useState('');
   const [agreed, setAgreed]       = useState(true);
@@ -85,10 +86,15 @@ export default function SignUpPage() {
     const lastNameV  = val('lastName', lastName).trim();
     const emailV     = val('email', email).trim();
     const passwordV  = val('password', password);
+    const confirmV   = val('confirmPassword', confirmPassword);
     const roleV      = val('role', role).trim();
 
     if (!emailV || !passwordV) {
       setError('Please enter both your email and password.');
+      return;
+    }
+    if (passwordV !== confirmV) {
+      setError("Those passwords don't match.");
       return;
     }
     if (roleV && roleV !== role) setRole(roleV);
@@ -292,6 +298,29 @@ export default function SignUpPage() {
             <div>
               <label className="ee-label">Password</label>
               <input className="ee-input" name="password" type="password" autoComplete="new-password" placeholder="At least 8 characters" value={password} onChange={e => setPassword(e.target.value)} required />
+            </div>
+            <div>
+              <label className="ee-label">Confirm password</label>
+              <input
+                className="ee-input"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Re-enter your password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                style={
+                  confirmPassword && password && confirmPassword !== password
+                    ? { borderColor: '#C0392B' }
+                    : undefined
+                }
+              />
+              {confirmPassword && password && confirmPassword !== password && (
+                <div style={{ color: '#C0392B', fontSize: 12, marginTop: 6 }}>
+                  Passwords don&apos;t match.
+                </div>
+              )}
             </div>
             <div>
               <label className="ee-label">Engineer type / role</label>

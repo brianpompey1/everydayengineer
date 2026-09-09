@@ -4,8 +4,10 @@ import Link from 'next/link';
 import EEMemberNav from '../../components/EEMemberNav';
 import EEFooter from '../../components/EEFooter';
 import EEPhoto from '../../components/EEPhoto';
-import { getEventById, getMemberRsvpStatus } from '@/lib/events';
+import { getEventById } from '@/lib/events';
 import { getOrCreateMember } from '@/lib/members';
+import { getRsvp } from '@/lib/rsvps';
+import RsvpPanel from '../RsvpPanel';
 
 const CAL = 'M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 3v4M16 3v4';
 const PIN = 'M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
@@ -33,11 +35,13 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
     fullName: clerkUser.fullName,
     avatarUrl: clerkUser.imageUrl,
   });
-  const rsvpStatus = await getMemberRsvpStatus(event.id, member.id);
+  const rsvp = await getRsvp(event.id, member.id);
 
   const date = new Date(event.event_date);
   const going = event.rsvp_count ?? 0;
+  const spectators = event.counts?.spectators ?? 0;
   const spotsLeft = event.capacity != null ? Math.max(event.capacity - going, 0) : null;
+  const rosterFull = event.capacity != null && going >= event.capacity;
 
   return (
     <div style={{ background: 'var(--ee-paper)', minHeight: '100vh' }}>
@@ -95,35 +99,49 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           </div>
         </div>
 
-        {/* RSVP card */}
+        {/* RSVP */}
         <div>
-          <div style={{ position: 'sticky', top: 100 }}>
-            <div style={{ background: 'var(--ee-navy-900)', color: '#fff', borderRadius: 12, padding: 28 }}>
-              <div className="ee-mono" style={{ color: 'var(--ee-gold)' }}>RSVP</div>
-              <h3 style={{ color: '#fff', marginTop: 14, fontSize: 22, fontWeight: 800 }}>
-                {rsvpStatus ? "You're going!" : 'Save your seat'}
-              </h3>
-
-              {event.capacity != null && (
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 8 }}>
-                    <span style={{ color: 'rgba(255,255,255,0.7)' }}>{going} going</span>
-                    <span style={{ color: 'rgba(255,255,255,0.7)' }}>{spotsLeft} left</span>
-                  </div>
-                  <div style={{ height: 5, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min((going / event.capacity) * 100, 100)}%`, height: '100%', background: 'var(--ee-gold)' }} />
-                  </div>
+          <div style={{ position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Roster meter */}
+            {event.capacity != null && (
+              <div style={{ background: 'var(--ee-navy-900)', color: '#fff', borderRadius: 12, padding: 24 }}>
+                <div className="ee-mono" style={{ color: 'var(--ee-gold)' }}>ROSTER</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 8px' }}>
+                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{going} of {event.capacity} players</span>
+                  <span style={{ color: rosterFull ? 'var(--ee-gold)' : 'rgba(255,255,255,0.7)' }}>
+                    {rosterFull ? 'Roster full' : `${spotsLeft} left`}
+                  </span>
                 </div>
-              )}
+                <div style={{ height: 5, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.min((going / event.capacity) * 100, 100)}%`, height: '100%', background: 'var(--ee-gold)' }} />
+                </div>
+                {spectators > 0 && (
+                  <div className="ee-mono" style={{ color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 10 }}>
+                    + {spectators} SPECTATOR{spectators === 1 ? '' : 'S'} COMING
+                  </div>
+                )}
+              </div>
+            )}
 
-              <button
-                className="ee-btn ee-btn-primary"
-                disabled
-                style={{ width: '100%', marginTop: 24, padding: '14px', opacity: 0.6, cursor: 'not-allowed' }}
-              >
-                {rsvpStatus ? 'RSVP management coming soon' : 'RSVP coming soon'}
-              </button>
-            </div>
+            <RsvpPanel
+              eventId={event.id}
+              eventTitle={event.title}
+              spotsLeft={spotsLeft}
+              rosterFull={rosterFull}
+              rsvp={rsvp ? { attendee_type: rsvp.attendee_type, status: rsvp.status } : null}
+              profile={{
+                fullName: member.full_name,
+                phone: member.phone,
+                companyOrSchool: member.company_or_school,
+                professionalStatus: member.professional_status,
+                discipline: member.discipline,
+                shirtSize: member.shirt_size,
+                is21Plus: member.is_21_plus,
+                emergencyContactName: member.emergency_contact_name,
+                emergencyContactPhone: member.emergency_contact_phone,
+                heardAboutUs: member.heard_about_us,
+              }}
+            />
           </div>
         </div>
       </section>

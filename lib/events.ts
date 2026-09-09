@@ -1,4 +1,5 @@
 import { supabaseAdmin } from './supabase';
+import { getEventCounts, type EventCounts } from './rsvps';
 
 export const UNIVERSITIES = [
   'Morgan State University',
@@ -23,35 +24,54 @@ export interface EventRow {
   updated_at: string;
   state: string | null;
   university: string | null;
+  /** Approved players — the number that counts against capacity. */
   rsvp_count?: number;
+  counts?: EventCounts;
+}
+
+/** Midnight this morning, so an event still shows on the day it happens. */
+function todayCutoff(): string {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
 }
 
 export async function getPublishedEvents(): Promise<EventRow[]> {
   const { data, error } = await supabaseAdmin
     .from('events')
-    .select('*, rsvps(count)')
+    .select('*')
     .eq('is_published', true)
+    .gte('event_date', todayCutoff())
     .order('event_date', { ascending: true });
 
   if (error) throw error;
 
-  return (data ?? []).map((e) => ({
+  const events = (data ?? []) as EventRow[];
+  const counts = await getEventCounts(events.map((e) => e.id));
+
+  return events.map((e) => ({
     ...e,
-    rsvp_count: e.rsvps?.[0]?.count ?? 0,
+    counts: counts[e.id],
+    rsvp_count: counts[e.id]?.players ?? 0,
   }));
 }
 
 export async function getEventById(id: string): Promise<EventRow | null> {
   const { data, error } = await supabaseAdmin
     .from('events')
-    .select('*, rsvps(count)')
+    .select('*')
     .eq('id', id)
     .maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
 
-  return { ...data, rsvp_count: data.rsvps?.[0]?.count ?? 0 };
+  const counts = await getEventCounts([id]);
+  return {
+    ...(data as EventRow),
+    counts: counts[id],
+    rsvp_count: counts[id]?.players ?? 0,
+  };
 }
 
 export async function getMemberRsvpStatus(eventId: string, memberId: string): Promise<string | null> {

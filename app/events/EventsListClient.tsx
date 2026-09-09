@@ -18,6 +18,23 @@ function Icon({ d, size = 14 }: { d: string; size?: number }) {
 
 const TONES = ['court', 'dark', 'warm', 'paper', 'cool', 'gold'] as const;
 
+/** Reflects the member's real RSVP state; clicking through opens the event. */
+function RsvpBadge({ status, full }: { status: string | null; full: boolean }) {
+  if (status === 'approved')
+    return <span className="ee-tag ee-tag-gold">Going ✓</span>;
+  if (status === 'pending')
+    return <span className="ee-tag" style={{ background: 'var(--ee-lavender-2)' }}>Requested</span>;
+  if (status === 'waitlisted')
+    return <span className="ee-tag" style={{ background: 'transparent', border: '1px solid var(--ee-line)' }}>Waitlisted</span>;
+  if (status === 'declined')
+    return <span className="ee-small">—</span>;
+  return (
+    <button className={full ? 'ee-btn ee-btn-ghost' : 'ee-btn ee-btn-dark'} style={{ padding: '8px 16px', fontSize: 12 }}>
+      {full ? 'Roster full' : 'RSVP'}
+    </button>
+  );
+}
+
 export interface EventListItem {
   id: string;
   title: string;
@@ -141,11 +158,13 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, flexWrap: 'wrap', gap: 12 }}>
                     <span className="ee-small">
-                      {featured.going} going{featured.capacity ? ` · ${Math.max(featured.capacity - featured.going, 0)} spots left` : ''}
+                      {featured.going} player{featured.going === 1 ? '' : 's'}
+                      {featured.capacity ? ` · ${Math.max(featured.capacity - featured.going, 0)} spots left` : ''}
                     </span>
-                    <button className="ee-btn ee-btn-dark">
-                      {featured.rsvpStatus ? "RSVP'd ✓" : 'RSVP →'}
-                    </button>
+                    <RsvpBadge
+                      status={featured.rsvpStatus}
+                      full={featured.capacity != null && featured.going >= featured.capacity}
+                    />
                   </div>
                 </div>
               </Link>
@@ -200,11 +219,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                       )}
                     </div>
                     <div className="ee-event-action" style={{ textAlign: 'right' }}>
-                      {e.rsvpStatus
-                        ? <span className="ee-tag ee-tag-gold">RSVP'd ✓</span>
-                        : full
-                        ? <button className="ee-btn ee-btn-ghost" style={{ padding: '8px 12px', fontSize: 12 }}>Join waitlist</button>
-                        : <button className="ee-btn ee-btn-dark" style={{ padding: '8px 16px', fontSize: 12 }}>RSVP</button>}
+                      <RsvpBadge status={e.rsvpStatus} full={full} />
                     </div>
                   </Link>
                 );

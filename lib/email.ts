@@ -1,6 +1,6 @@
 import { Resend } from 'resend';
 
-const FROM = 'Everyday Engineer Club <hello@everydayeng.com>';
+const FROM = 'Everyday Engineer Club <noreply@everydayeng.com>';
 
 function client(): Resend | null {
   const key = process.env.RESEND_API_KEY;

@@ -97,6 +97,23 @@ function formatWhen(iso: string): string {
 
 const greet = (name: string | null) => `<p style="margin:0 0 14px;">Hey${name ? ` ${name.split(' ')[0]}` : ''},</p>`;
 
+/**
+ * Details block for anyone who is welcome at the venue (confirmed spectators,
+ * approved players, waitlisted players invited to spectate). Includes the
+ * private street address when one is set, plus a note to keep it private.
+ */
+function attendeeDetails(ctx: EventEmailContext): string {
+  return `
+    ${detailBlock([
+      ['Event', ctx.eventTitle],
+      ['When', formatWhen(ctx.eventDate)],
+      ['Address', ctx.venueAddress ?? ctx.location ?? 'TBA'],
+    ])}
+    ${ctx.venueAddress
+      ? `<p style="margin:14px 0 0;color:#5A6378;font-size:13px;">Please keep the address to yourself — it's only shared with confirmed attendees.</p>`
+      : ''}`;
+}
+
 // ── Templates ──────────────────────────────────────────────
 
 export function spectatorConfirmed(ctx: EventEmailContext) {
@@ -106,7 +123,7 @@ export function spectatorConfirmed(ctx: EventEmailContext) {
       ${heading("You're coming through.")}
       ${greet(ctx.memberName)}
       <p style="margin:0 0 14px;">You're confirmed as a <strong>spectator</strong>. No waiver needed — just show up.</p>
-      ${detailBlock([['Event', ctx.eventTitle], ['When', formatWhen(ctx.eventDate)], ['Where', ctx.location ?? 'TBA']])}
+      ${attendeeDetails(ctx)}
       <p style="margin:14px 0 0;">See you there.</p>
     `),
   };
@@ -135,12 +152,7 @@ export function playerApproved(ctx: EventEmailContext) {
       ${heading("You're on the roster.")}
       ${greet(ctx.memberName)}
       <p style="margin:0 0 14px;">You've got a playing spot. Come ready to run — bring two pairs of socks.</p>
-      ${detailBlock([
-        ['Event', ctx.eventTitle],
-        ['When', formatWhen(ctx.eventDate)],
-        ['Address', ctx.venueAddress ?? ctx.location ?? 'TBA'],
-      ])}
-      ${ctx.venueAddress ? `<p style="margin:14px 0 0;color:#5A6378;font-size:13px;">Please keep the address to yourself — it's shared with confirmed players only.</p>` : ''}
+      ${attendeeDetails(ctx)}
     `),
   };
 }
@@ -159,7 +171,7 @@ export function playerWaitlisted(ctx: EventEmailContext) {
         <strong>You're still very welcome to come through as a spectator.</strong> Same time, same place,
         and we'll get you on the court next run.
       </p>
-      ${detailBlock([['Event', ctx.eventTitle], ['When', formatWhen(ctx.eventDate)], ['Where', ctx.location ?? 'TBA']])}
+      ${attendeeDetails(ctx)}
     `),
   };
 }

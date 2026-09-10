@@ -79,6 +79,9 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
           eventTitle: event.title,
           eventDate: event.event_date,
           location: event.location,
+          // Spectators are confirmed attendees, so they get the street address.
+          // Pending players don't — their decision email will include it.
+          venueAddress: input.attendeeType === 'spectator' ? event.venue_address : null,
           memberName: member.full_name,
         };
         const mail =

@@ -6,6 +6,7 @@ import EEFooter from '../components/EEFooter';
 import EEPhoto from '../components/EEPhoto';
 import { getOrCreateMember, isProfileComplete } from '@/lib/members';
 import { getPublishedEvents } from '@/lib/events';
+import { formatET } from '@/lib/datetime';
 
 const TONES = ['court', 'dark', 'warm', 'paper', 'cool', 'gold'] as const;
 
@@ -21,14 +22,14 @@ function Icon({ d, size = 16 }: { d: string; size?: number }) {
 }
 
 function getGreeting() {
-  const h = new Date().getHours();
+  const h = Number(formatET(new Date(), { hour: 'numeric', hour12: false })) % 24;
   if (h < 12) return 'Good morning';
   if (h < 17) return 'Good afternoon';
   return 'Good evening';
 }
 
 function getDateString() {
-  return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
+  return formatET(new Date(), { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).toUpperCase();
 }
 
 export default async function TodayPage() {
@@ -101,7 +102,7 @@ export default async function TodayPage() {
                     <div style={{ fontWeight: 700, fontSize: 16 }}>{e.title}</div>
                     <div className="ee-small" style={{ marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Icon d={CAL} size={12} /> {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        <Icon d={CAL} size={12} /> {formatET(date, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                       </span>
                       {e.location && <span>{e.location}</span>}
                     </div>

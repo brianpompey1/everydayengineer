@@ -8,6 +8,7 @@ import { getEventById } from '@/lib/events';
 import { getOrCreateMember } from '@/lib/members';
 import { getRsvp } from '@/lib/rsvps';
 import RsvpPanel from '../RsvpPanel';
+import { formatET, formatTimeRange } from '@/lib/datetime';
 
 const CAL = 'M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 3v4M16 3v4';
 const PIN = 'M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
@@ -59,7 +60,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         <div style={{ position: 'absolute', bottom: 48, left: 56, right: 56, color: '#fff' }}>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
             <span className="ee-tag ee-tag-gold">
-              {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
+              {formatET(date, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
             </span>
             {event.category && (
               <span className="ee-tag" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>{event.category}</span>
@@ -76,7 +77,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
           {/* Quick facts */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', border: '1px solid var(--ee-line)', borderRadius: 10, overflow: 'hidden', marginBottom: 48 }}>
             {[
-              { icon: CAL, label: 'When', value: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }), sub: date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) },
+              { icon: CAL, label: 'When', value: formatET(date, { weekday: 'short', month: 'short', day: 'numeric' }), sub: `${formatTimeRange(date, event.end_date)} ET` },
               { icon: PIN, label: 'Where', value: event.location ?? 'TBA', sub: event.university ?? event.state ?? '' },
               { icon: COMPASS, label: 'Capacity', value: event.capacity != null ? `${going} / ${event.capacity}` : `${going} going`, sub: spotsLeft != null ? `${spotsLeft} spots remaining` : '' },
             ].map(({ icon, label, value, sub }, i) => (

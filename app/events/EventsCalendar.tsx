@@ -2,6 +2,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { EventListItem } from './EventsListClient';
+import { etDateParts } from '@/lib/datetime';
 
 const CHEV_L = 'M15 18l-6-6 6-6';
 const CHEV_R = 'M9 18l6-6-6-6';
@@ -16,19 +17,27 @@ function Icon({ d, size = 16 }: { d: string; size?: number }) {
 
 const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-function dateKey(d: Date) {
+// Grid cells are plain calendar days, so their own fields are the right key.
+function cellKey(d: Date) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
+// Events are instants, so key them by the date it is *in New York* — otherwise
+// a late-evening event can land on the wrong day for viewers elsewhere.
+function etKey(d: Date | string) {
+  const { year, month, day } = etDateParts(d);
+  return `${year}-${month}-${day}`;
+}
+
 export default function EventsCalendar({ events }: { events: EventListItem[] }) {
-  const today = new Date();
-  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const todayET = etDateParts(new Date());
+  const todayKey = `${todayET.year}-${todayET.month}-${todayET.day}`;
+  const [cursor, setCursor] = useState(new Date(todayET.year, todayET.month, 1));
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, EventListItem[]>();
     for (const e of events) {
-      const d = new Date(e.eventDate);
-      const key = dateKey(d);
+      const key = etKey(e.eventDate);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(e);
     }
@@ -57,7 +66,7 @@ export default function EventsCalendar({ events }: { events: EventListItem[] }) 
   }
 
   const monthLabel = cursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const isToday = (d: Date) => dateKey(d) === dateKey(today);
+  const isToday = (d: Date) => cellKey(d) === todayKey;
 
   return (
     <div>
@@ -66,7 +75,7 @@ export default function EventsCalendar({ events }: { events: EventListItem[] }) 
         <h3 style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.01em' }}>{monthLabel}</h3>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <button
-            onClick={() => setCursor(new Date(today.getFullYear(), today.getMonth(), 1))}
+            onClick={() => setCursor(new Date(todayET.year, todayET.month, 1))}
             className="ee-btn-link"
             style={{ fontSize: 10, marginRight: 8 }}
           >
@@ -101,7 +110,7 @@ export default function EventsCalendar({ events }: { events: EventListItem[] }) 
       {/* Day grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, background: 'var(--ee-line)', border: '1px solid var(--ee-line)' }}>
         {cells.map(({ date, inMonth }, i) => {
-          const dayEvents = eventsByDay.get(dateKey(date)) ?? [];
+          const dayEvents = eventsByDay.get(cellKey(date)) ?? [];
           const visible = dayEvents.slice(0, 2);
           const overflow = dayEvents.length - visible.length;
           return (

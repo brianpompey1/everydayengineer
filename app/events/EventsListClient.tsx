@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import EEPhoto from '../components/EEPhoto';
 import EventsCalendar from './EventsCalendar';
+import { formatET, etDateParts } from '@/lib/datetime';
 
 const CAL = 'M3 9h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM8 3v4M16 3v4';
 const PIN = 'M12 22s7-7 7-12a7 7 0 1 0-14 0c0 5 7 12 7 12zM12 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z';
@@ -152,7 +153,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                 <div style={{ padding: 36, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
                     <span className="ee-tag ee-tag-gold">
-                      {new Date(featured.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
+                      {formatET(featured.eventDate, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
                     </span>
                     <h2 style={{ marginTop: 18, fontSize: 30, fontWeight: 800, letterSpacing: '-0.01em' }}>{featured.title}</h2>
                   </div>
@@ -186,9 +187,9 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                     className="ee-card ee-card-hover ee-event-row"
                   >
                     <div className="ee-event-date" style={{ textAlign: 'center', borderRight: '1px solid var(--ee-line)', paddingRight: 14 }}>
-                      <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>{date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()}</div>
-                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{date.getDate()}</div>
-                      <div className="ee-small" style={{ fontSize: 10, marginTop: 4 }}>{date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}</div>
+                      <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)' }}>{formatET(date, { month: 'short' }).toUpperCase()}</div>
+                      <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{etDateParts(date).day}</div>
+                      <div className="ee-small" style={{ fontSize: 10, marginTop: 4 }}>{formatET(date, { weekday: 'short' }).toUpperCase()}</div>
                     </div>
                     <EEPhoto tone={TONES[i % TONES.length]} label="" className="ee-event-photo" style={{ aspectRatio: '1/1', borderRadius: 6 }} />
                     <div className="ee-event-info">
@@ -199,7 +200,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                       )}
                       <div style={{ fontWeight: 700, fontSize: 16 }}>{e.title}</div>
                       <div className="ee-small" style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                        <Icon d={PIN} size={11} /> {e.location ?? 'Location TBA'} · {date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                        <Icon d={PIN} size={11} /> {e.location ?? 'Location TBA'} · {formatET(date, { hour: 'numeric', minute: '2-digit' })}
                       </div>
                     </div>
                     <div className="ee-event-capacity">

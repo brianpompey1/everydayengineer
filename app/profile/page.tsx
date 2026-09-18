@@ -4,6 +4,7 @@ import EEMemberNav from '../components/EEMemberNav';
 import EEFooter from '../components/EEFooter';
 import EEPhoto from '../components/EEPhoto';
 import { getOrCreateMember, isProfileComplete } from '@/lib/members';
+import { formatET } from '@/lib/datetime';
 
 const EXT = 'M7 17L17 7M9 7h8v8';
 const LINK = 'M10 14a5 5 0 0 1 0-7l3-3a5 5 0 0 1 7 7l-1.5 1.5M14 10a5 5 0 0 1 0 7l-3 3a5 5 0 0 1-7-7l1.5-1.5';
@@ -17,7 +18,7 @@ function Icon({ d, size = 14 }: { d: string; size?: number }) {
 }
 
 function formatSince(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  return formatET(dateStr, { month: 'short', year: 'numeric' });
 }
 
 export default async function ProfilePage() {

@@ -7,6 +7,7 @@ import {
   playerDeclined,
   type EventEmailContext,
 } from '@/lib/email';
+import { confirmUrl } from '@/lib/confirm';
 
 /**
  * Called by a Supabase Database Webhook whenever a row in `rsvps` changes.
@@ -76,14 +77,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ skipped: 'already notified' });
   }
 
-  const [{ data: member }, { data: event }] = await Promise.all([
+  const [{ data: member, error: memberError }, { data: event, error: eventError }] = await Promise.all([
     supabaseAdmin.from('members').select('email, full_name').eq('id', record.member_id).maybeSingle(),
     supabaseAdmin
       .from('events')
-      .select('title, event_date, location, venue_address')
+      .select('title, event_date, end_date, location, venue_address, attendee_notes')
       .eq('id', record.event_id)
       .maybeSingle(),
   ]);
+
+  // A query error (e.g. a missing column) must surface as a failure in the
+  // Supabase webhook log — not look like a harmless skip.
+  if (memberError || eventError) {
+    const message = (memberError ?? eventError)?.message;
+    console.error('[rsvp webhook] lookup failed:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 
   if (!member?.email || !event) {
     return NextResponse.json({ skipped: 'member or event missing' });
@@ -92,8 +101,12 @@ export async function POST(req: Request) {
   const ctx: EventEmailContext = {
     eventTitle: event.title,
     eventDate: event.event_date,
+    eventEndDate: event.end_date,
     location: event.location,
     venueAddress: event.venue_address,
+    attendeeNotes: event.attendee_notes,
+    // Only approved players get the one-click "I'll be there" link.
+    confirmUrl: record.status === 'approved' ? confirmUrl(record.id) : null,
     memberName: member.full_name,
   };
 

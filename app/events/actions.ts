@@ -78,6 +78,7 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
         const ctx = {
           eventTitle: event.title,
           eventDate: event.event_date,
+          eventEndDate: event.end_date,
           location: event.location,
           // Spectators are confirmed attendees, so they get the street address.
           // Pending players don't — their decision email will include it.

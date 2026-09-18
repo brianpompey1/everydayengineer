@@ -9,6 +9,9 @@ const isPublicRoute = createRouteMatcher([
   '/signin(.*)',
   '/signup(.*)',
   '/api/webhooks(.*)',
+  // Approval-email confirm links work without logging in; the signed token
+  // in the URL is the authorisation.
+  '/confirm(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

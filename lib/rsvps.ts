@@ -12,6 +12,8 @@ export interface Rsvp {
   status: RsvpStatus;
   created_at: string;
   updated_at: string | null;
+  /** Set when an approved player confirms they'll actually be there. */
+  attendance_confirmed_at: string | null;
 }
 
 /** Approved players fill roster spots. Everything else does not. */
@@ -134,6 +136,40 @@ export async function submitRsvp(input: SubmitRsvpInput): Promise<Rsvp> {
 
   if (error) throw error;
   return data as Rsvp;
+}
+
+export async function getRsvpById(rsvpId: string): Promise<Rsvp | null> {
+  const { data, error } = await supabaseAdmin
+    .from('rsvps')
+    .select('*')
+    .eq('id', rsvpId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return (data as Rsvp) ?? null;
+}
+
+export type ConfirmOutcome = 'confirmed' | 'already_confirmed' | 'not_approved' | 'not_found';
+
+/**
+ * Records that an approved player will attend. Only approved players can
+ * confirm; confirming twice is harmless. The status is untouched, so the
+ * email webhook sees no status change and sends nothing.
+ */
+export async function confirmAttendance(rsvpId: string): Promise<ConfirmOutcome> {
+  const rsvp = await getRsvpById(rsvpId);
+  if (!rsvp) return 'not_found';
+  if (rsvp.attendee_type !== 'player' || rsvp.status !== 'approved') return 'not_approved';
+  if (rsvp.attendance_confirmed_at) return 'already_confirmed';
+
+  const { error } = await supabaseAdmin
+    .from('rsvps')
+    .update({ attendance_confirmed_at: new Date().toISOString() })
+    .eq('id', rsvpId)
+    .is('attendance_confirmed_at', null);
+
+  if (error) throw error;
+  return 'confirmed';
 }
 
 export async function cancelRsvp(eventId: string, memberId: string): Promise<void> {

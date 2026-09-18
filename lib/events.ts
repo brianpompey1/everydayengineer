@@ -15,6 +15,8 @@ export interface EventRow {
   location: string | null;
   /** Private street address — email only. Never pass to a client component. */
   venue_address: string | null;
+  /** Per-event instructions for confirmed attendees, one per line. */
+  attendee_notes: string | null;
   event_date: string;
   end_date: string | null;
   cover_image: string | null;

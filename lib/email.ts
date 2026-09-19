@@ -213,19 +213,22 @@ export function playerApproved(ctx: EventEmailContext) {
 
 export function playerWaitlisted(ctx: EventEmailContext) {
   return {
-    subject: `Roster's full — come spectate? (${ctx.eventTitle})`,
+    subject: `You're on the waitlist — ${ctx.eventTitle}`,
     html: shell(`
-      ${heading('The roster filled up.')}
-      ${greet(ctx.memberName)}
+      ${heading("You're on the waitlist.")}
       <p style="margin:0 0 14px;">
-        We couldn't fit you into a playing spot this time — the roster capped out. That's it, nothing
-        more to read into it.
+        Thank you for signing up for our upcoming <strong>${esc(ctx.eventTitle)}</strong>.
       </p>
       <p style="margin:0 0 14px;">
-        <strong>You're still very welcome to come through as a spectator.</strong> Same time, same place,
-        and we'll get you on the court next run.
+        The player roster is currently full, so anyone who has not received player confirmation has
+        been added to the waitlist. If a spot becomes available, we'll contact you directly.
+      </p>
+      <p style="margin:0 0 14px;">
+        You're still welcome to come by, support the community, and watch as a spectator. If a player
+        spot opens during the event, we may also be able to add you to the run.
       </p>
       ${attendeeDetails(ctx)}
+      <p style="margin:14px 0 0;">Thank you for your interest and understanding. We hope to see you there!</p>
     `),
   };
 }

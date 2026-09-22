@@ -17,6 +17,14 @@ export interface EventRow {
   venue_address: string | null;
   /** Per-event instructions for confirmed attendees, one per line. */
   attendee_notes: string | null;
+  /** False for participant-only events — no spectator option. */
+  allow_spectators: boolean;
+  /** Participants must confirm they are 21 or older. */
+  requires_21_plus: boolean;
+  /** Per-event waiver. Empty waiver_text means no waiver for this event. */
+  waiver_title: string | null;
+  waiver_text: string | null;
+  waiver_agree_label: string | null;
   event_date: string;
   end_date: string | null;
   cover_image: string | null;

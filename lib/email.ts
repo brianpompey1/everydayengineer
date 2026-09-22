@@ -98,6 +98,10 @@ export interface EventEmailContext {
   venueAddress?: string | null;
   attendeeNotes?: string | null;
   confirmUrl?: string | null;
+  /** False for participant-only events. Defaults to true. */
+  allowSpectators?: boolean;
+  /** Whether the event has a waiver the participant signed. Defaults to true. */
+  hasWaiver?: boolean;
   memberName: string | null;
 }
 
@@ -179,11 +183,16 @@ export function playerRequestReceived(ctx: EventEmailContext) {
       ${heading('Request received.')}
       ${greet(ctx.memberName)}
       <p style="margin:0 0 14px;">
-        We've got your request to play, and your waiver is on file. Rosters are capped, so an
-        organizer confirms spots before each event — <strong>we'll email you either way</strong>.
+        We've got your request to participate${ctx.hasWaiver === false ? '' : ', and your waiver is on file'}.
+        Spots are limited, so an organizer confirms participants before each event —
+        <strong>we'll email you either way</strong>.
       </p>
       ${detailBlock([['Event', ctx.eventTitle], ['Date', dateLine(ctx)], ['Time', timeLine(ctx)], ['Where', ctx.location ?? 'TBA']])}
-      <p style="margin:14px 0 0;">Requesting a spot doesn't guarantee one, but if the roster's full you're still welcome to come through and watch.</p>
+      <p style="margin:14px 0 0;">${
+        ctx.allowSpectators === false
+          ? "Requesting a spot doesn't guarantee one — we'll let you know either way."
+          : "Requesting a spot doesn't guarantee one, but if the event fills up you're still welcome to come through and watch."
+      }</p>
     `),
   };
 }
@@ -194,7 +203,7 @@ export function playerApproved(ctx: EventEmailContext) {
   return {
     subject: `Confirm your spot — ${ctx.eventTitle}`,
     html: shell(`
-      ${heading("You're on the roster.")}
+      ${heading("You're in.")}
       <p style="margin:0 0 14px;">
         Hey${name ? ` ${esc(name)}` : ' there'}! This is your confirmation for the
         <strong>${esc(ctx.eventTitle)}</strong>.
@@ -212,6 +221,7 @@ export function playerApproved(ctx: EventEmailContext) {
 }
 
 export function playerWaitlisted(ctx: EventEmailContext) {
+  const spectatorsWelcome = ctx.allowSpectators !== false;
   return {
     subject: `You're on the waitlist — ${ctx.eventTitle}`,
     html: shell(`
@@ -220,15 +230,20 @@ export function playerWaitlisted(ctx: EventEmailContext) {
         Thank you for signing up for our upcoming <strong>${esc(ctx.eventTitle)}</strong>.
       </p>
       <p style="margin:0 0 14px;">
-        The player roster is currently full, so anyone who has not received player confirmation has
+        The event is currently full, so anyone who has not received participant confirmation has
         been added to the waitlist. If a spot becomes available, we'll contact you directly.
       </p>
-      <p style="margin:0 0 14px;">
-        You're still welcome to come by, support the community, and watch as a spectator. If a player
-        spot opens during the event, we may also be able to add you to the run.
-      </p>
-      ${attendeeDetails(ctx)}
-      <p style="margin:14px 0 0;">Thank you for your interest and understanding. We hope to see you there!</p>
+      ${spectatorsWelcome
+        ? `<p style="margin:0 0 14px;">
+             You're still welcome to come by, support the community, and watch as a spectator. If a
+             spot opens during the event, we may also be able to add you.
+           </p>
+           ${attendeeDetails(ctx)}`
+        : // Participant-only: they aren't coming, so no private street address.
+          detailBlock([['Event', ctx.eventTitle], ['Date', dateLine(ctx)], ['Time', timeLine(ctx)]])}
+      <p style="margin:14px 0 0;">Thank you for your interest and understanding. ${
+        spectatorsWelcome ? 'We hope to see you there!' : 'We hope to see you at a future event!'
+      }</p>
     `),
   };
 }

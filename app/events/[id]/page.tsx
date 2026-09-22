@@ -7,6 +7,7 @@ import EEPhoto from '../../components/EEPhoto';
 import { getEventById } from '@/lib/events';
 import { getOrCreateMember } from '@/lib/members';
 import { getRsvp } from '@/lib/rsvps';
+import { readEventWaiver } from '@/lib/waiver';
 import RsvpPanel from '../RsvpPanel';
 import { formatET, formatTimeRange } from '@/lib/datetime';
 
@@ -42,7 +43,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const going = event.rsvp_count ?? 0;
   const spectators = event.counts?.spectators ?? 0;
   const spotsLeft = event.capacity != null ? Math.max(event.capacity - going, 0) : null;
-  const rosterFull = event.capacity != null && going >= event.capacity;
+  const eventFull = event.capacity != null && going >= event.capacity;
 
   return (
     <div style={{ background: 'var(--ee-paper)', minHeight: '100vh' }}>
@@ -103,20 +104,20 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
         {/* RSVP */}
         <div>
           <div style={{ position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {/* Roster meter */}
+            {/* Participant meter */}
             {event.capacity != null && (
               <div style={{ background: 'var(--ee-navy-900)', color: '#fff', borderRadius: 12, padding: 24 }}>
-                <div className="ee-mono" style={{ color: 'var(--ee-gold)' }}>ROSTER</div>
+                <div className="ee-mono" style={{ color: 'var(--ee-gold)' }}>PARTICIPANTS</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, margin: '14px 0 8px' }}>
-                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{going} of {event.capacity} players</span>
-                  <span style={{ color: rosterFull ? 'var(--ee-gold)' : 'rgba(255,255,255,0.7)' }}>
-                    {rosterFull ? 'Roster full' : `${spotsLeft} left`}
+                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{going} of {event.capacity} participants</span>
+                  <span style={{ color: eventFull ? 'var(--ee-gold)' : 'rgba(255,255,255,0.7)' }}>
+                    {eventFull ? 'Full' : `${spotsLeft} left`}
                   </span>
                 </div>
                 <div style={{ height: 5, background: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min((going / event.capacity) * 100, 100)}%`, height: '100%', background: 'var(--ee-gold)' }} />
                 </div>
-                {spectators > 0 && (
+                {event.allow_spectators && spectators > 0 && (
                   <div className="ee-mono" style={{ color: 'rgba(255,255,255,0.5)', marginTop: 12, fontSize: 10 }}>
                     + {spectators} SPECTATOR{spectators === 1 ? '' : 'S'} COMING
                   </div>
@@ -128,8 +129,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               eventId={event.id}
               eventTitle={event.title}
               spotsLeft={spotsLeft}
-              rosterFull={rosterFull}
-              rsvp={rsvp ? { attendee_type: rsvp.attendee_type, status: rsvp.status } : null}
+              eventFull={eventFull}
+              allowSpectators={event.allow_spectators}
+              requires21Plus={event.requires_21_plus}
+              waiver={readEventWaiver(event)}
+              rsvp={
+                rsvp
+                  ? { attendee_type: rsvp.attendee_type, status: rsvp.status, attendance_confirmed_at: rsvp.attendance_confirmed_at }
+                  : null
+              }
               profile={{
                 fullName: member.full_name,
                 phone: member.phone,

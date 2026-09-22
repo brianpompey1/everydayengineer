@@ -31,7 +31,7 @@ function RsvpBadge({ status, full }: { status: string | null; full: boolean }) {
     return <span className="ee-small">—</span>;
   return (
     <button className={full ? 'ee-btn ee-btn-ghost' : 'ee-btn ee-btn-dark'} style={{ padding: '8px 16px', fontSize: 12 }}>
-      {full ? 'Roster full' : 'RSVP'}
+      {full ? 'Full' : 'RSVP'}
     </button>
   );
 }
@@ -159,7 +159,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, flexWrap: 'wrap', gap: 12 }}>
                     <span className="ee-small">
-                      {featured.going} player{featured.going === 1 ? '' : 's'}
+                      {featured.going} participant{featured.going === 1 ? '' : 's'}
                       {featured.capacity ? ` · ${Math.max(featured.capacity - featured.going, 0)} spots left` : ''}
                     </span>
                     <RsvpBadge

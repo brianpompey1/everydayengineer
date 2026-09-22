@@ -6,6 +6,7 @@ import { getOrCreateMember, updateMemberProfile, type MemberProfileInput } from 
 import { submitRsvp, cancelRsvp, type AttendeeType } from '@/lib/rsvps';
 import { getEventById } from '@/lib/events';
 import { sendEmail, spectatorConfirmed, playerRequestReceived } from '@/lib/email';
+import { readEventWaiver } from '@/lib/waiver';
 
 export interface RsvpActionResult {
   ok: boolean;
@@ -16,12 +17,13 @@ export interface RsvpFormInput {
   eventId: string;
   attendeeType: AttendeeType;
   profile?: MemberProfileInput;
+  /** The member's answer to the 21+ question, if they were asked. */
+  is21Plus?: boolean | null;
   waiver?: {
     signatureName: string;
     signatureDate: string;
     emergencyContactName: string;
     emergencyContactPhone: string;
-    is21Plus: boolean;
   };
 }
 
@@ -44,18 +46,28 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
 
     const { clerkUser, member } = ctx;
 
-    // Players must be 21+. Trust the stored profile value over the submitted
-    // one where we already have it, so this can't be bypassed client-side.
-    if (input.attendeeType === 'player') {
-      const declared = input.waiver?.is21Plus ?? input.profile?.is_21_plus;
-      const known = member.is_21_plus;
-      const is21 = known === null ? declared : known && declared !== false;
-      if (!is21) {
-        return {
-          ok: false,
-          error: 'Participants must be 21 or older to play. You’re welcome to attend as a spectator.',
-        };
-      }
+    const event = await getEventById(input.eventId);
+    if (!event) return { ok: false, error: 'That event could not be found.' };
+
+    const rules = {
+      allowSpectators: event.allow_spectators,
+      requires21Plus: event.requires_21_plus,
+      waiver: readEventWaiver(event),
+    };
+
+    // Trust the stored profile value over the submitted one where we already
+    // have it, so the age requirement can't be bypassed client-side.
+    const declared = input.is21Plus ?? input.profile?.is_21_plus ?? null;
+    const known = member.is_21_plus;
+    const is21Plus = known === null ? declared : known && declared !== false;
+
+    if (input.attendeeType === 'player' && rules.requires21Plus && !is21Plus) {
+      return {
+        ok: false,
+        error: rules.allowSpectators
+          ? 'Participants must be 21 or older. You’re welcome to attend as a spectator.'
+          : 'Participants must be 21 or older.',
+      };
     }
 
     if (input.profile) {
@@ -66,6 +78,8 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
       eventId: input.eventId,
       memberId: member.id,
       attendeeType: input.attendeeType,
+      rules,
+      is21Plus,
       waiver: input.waiver,
     });
 
@@ -73,8 +87,7 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
     // Supabase webhook, since those status changes happen outside the app.
     // Never let a mail failure fail the RSVP itself.
     try {
-      const event = await getEventById(input.eventId);
-      if (event && member.email) {
+      if (member.email) {
         const ctx = {
           eventTitle: event.title,
           eventDate: event.event_date,
@@ -83,6 +96,8 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
           // Spectators are confirmed attendees, so they get the street address.
           // Pending players don't — their decision email will include it.
           venueAddress: input.attendeeType === 'spectator' ? event.venue_address : null,
+          allowSpectators: event.allow_spectators,
+          hasWaiver: rules.waiver !== null,
           memberName: member.full_name,
         };
         const mail =

@@ -1,5 +1,6 @@
 import { supabaseAdmin } from './supabase';
-import { WAIVER_VERSION, WAIVER_FULL_TEXT } from './waiver';
+import { createHash } from 'node:crypto';
+import { waiverSnapshot, type EventWaiver } from './waiver';
 
 export type AttendeeType = 'player' | 'spectator';
 export type RsvpStatus = 'pending' | 'approved' | 'waitlisted' | 'declined';
@@ -71,52 +72,77 @@ export async function hasSignedWaiver(eventId: string, memberId: string): Promis
   return Boolean(data);
 }
 
+/** The event rules an RSVP is checked against. */
+export interface EventRsvpRules {
+  allowSpectators: boolean;
+  requires21Plus: boolean;
+  /** Null when the event needs no waiver. */
+  waiver: EventWaiver | null;
+}
+
 interface SubmitRsvpInput {
   eventId: string;
   memberId: string;
   attendeeType: AttendeeType;
-  /** Required for players — the signed waiver accompanying the request. */
+  rules: EventRsvpRules;
+  /** Whether the member has confirmed they are 21 or older. */
+  is21Plus: boolean | null;
+  /** Required for participants when the event has a waiver. */
   waiver?: {
     signatureName: string;
     signatureDate: string;
     emergencyContactName: string;
     emergencyContactPhone: string;
-    is21Plus: boolean;
   };
 }
 
 /**
- * Spectators are confirmed immediately — they're always welcome.
- * Players are recorded as pending and wait for a roster spot.
+ * Spectators are confirmed immediately. Participants are recorded as pending
+ * and wait for a spot. Every event rule is enforced here, server-side, so
+ * none of them can be bypassed from the browser.
  */
 export async function submitRsvp(input: SubmitRsvpInput): Promise<Rsvp> {
-  const { eventId, memberId, attendeeType, waiver } = input;
+  const { eventId, memberId, attendeeType, rules, is21Plus, waiver } = input;
+
+  if (attendeeType === 'spectator' && !rules.allowSpectators) {
+    throw new Error("This event is for participants only — there's no spectator option.");
+  }
 
   if (attendeeType === 'player') {
-    if (!waiver) throw new Error('A signed waiver is required to participate.');
-    if (!waiver.is21Plus) throw new Error('Participants must be 21 or older to play.');
+    if (rules.requires21Plus && is21Plus !== true) {
+      throw new Error('Participants must be 21 or older.');
+    }
 
-    // Snapshot the exact wording agreed to, so the signature stays meaningful
-    // even if the waiver text is revised later.
-    const { error: waiverError } = await supabaseAdmin
-      .from('waivers')
-      .upsert(
-        {
-          member_id: memberId,
-          event_id: eventId,
-          waiver_version: WAIVER_VERSION,
-          waiver_text: WAIVER_FULL_TEXT,
-          signature_name: waiver.signatureName,
-          signature_date: waiver.signatureDate,
-          emergency_contact_name: waiver.emergencyContactName,
-          emergency_contact_phone: waiver.emergencyContactPhone,
-          is_21_plus: waiver.is21Plus,
-          agreed: true,
-        },
-        { onConflict: 'member_id,event_id' }
-      );
+    if (rules.waiver) {
+      if (!waiver?.signatureName?.trim()) {
+        throw new Error('A signed waiver is required to participate.');
+      }
 
-    if (waiverError) throw waiverError;
+      // Snapshot exactly what was shown — title, body and consent label — so
+      // the signature stays meaningful even if the event's waiver is edited.
+      const snapshot = waiverSnapshot(rules.waiver);
+      const version = 'sha256:' + createHash('sha256').update(snapshot).digest('hex').slice(0, 16);
+
+      const { error: waiverError } = await supabaseAdmin
+        .from('waivers')
+        .upsert(
+          {
+            member_id: memberId,
+            event_id: eventId,
+            waiver_version: version,
+            waiver_text: snapshot,
+            signature_name: waiver.signatureName.trim(),
+            signature_date: waiver.signatureDate,
+            emergency_contact_name: waiver.emergencyContactName,
+            emergency_contact_phone: waiver.emergencyContactPhone,
+            is_21_plus: is21Plus === true,
+            agreed: true,
+          },
+          { onConflict: 'member_id,event_id' }
+        );
+
+      if (waiverError) throw waiverError;
+    }
   }
 
   const { data, error } = await supabaseAdmin

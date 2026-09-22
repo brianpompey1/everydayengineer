@@ -588,3 +588,41 @@ a { color: inherit; text-decoration: none; }
   .ee-event-action { justify-self: start; margin-top: 4px; }
   .ee-event-date { padding-right: 8px !important; }
 }
+
+/* ── Event detail page ── */
+.ee-detail-hero { position: relative; height: 420px; overflow: hidden; }
+.ee-detail-back { position: absolute; top: 28px; left: 56px; }
+.ee-detail-hero-text { position: absolute; bottom: 48px; left: 56px; right: 56px; color: #fff; }
+.ee-detail-body {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 56px;
+  padding: 56px 56px 96px;
+}
+.ee-detail-sidebar { position: sticky; top: 100px; display: flex; flex-direction: column; gap: 16px; }
+.ee-detail-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 1px solid var(--ee-line);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+.ee-detail-fact { padding: 20px 18px; }
+.ee-detail-fact + .ee-detail-fact { border-left: 1px solid var(--ee-line); }
+
+/* The RSVP column needs room for the waiver, so stack before it gets cramped. */
+@media (max-width: 900px) {
+  .ee-detail-body    { grid-template-columns: 1fr; gap: 40px; padding: 40px 20px 64px; }
+  .ee-detail-sidebar { position: static; }
+  .ee-detail-back    { left: 20px; top: 20px; }
+  .ee-detail-hero-text { left: 20px; right: 20px; bottom: 28px; }
+  .ee-detail-hero    { height: 320px; }
+  .ee-detail-facts   { margin-bottom: 36px; }
+}
+
+@media (max-width: 480px) {
+  .ee-detail-facts { grid-template-columns: 1fr; }
+  .ee-detail-fact + .ee-detail-fact { border-left: none; border-top: 1px solid var(--ee-line); }
+  .ee-detail-fact  { padding: 16px 18px; }
+}

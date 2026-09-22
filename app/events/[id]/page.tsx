@@ -50,15 +50,15 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       <EEMemberNav />
 
       {/* Hero */}
-      <section style={{ position: 'relative', height: 420, overflow: 'hidden' }}>
+      <section className="ee-detail-hero">
         <EEPhoto tone="warm" label="" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,19,37,0.2) 0%, rgba(10,19,37,0.75) 100%)' }} />
 
-        <div style={{ position: 'absolute', top: 28, left: 56 }}>
+        <div className="ee-detail-back">
           <Link href="/events" className="ee-mono" style={{ color: 'rgba(255,255,255,0.85)' }}>← All events</Link>
         </div>
 
-        <div style={{ position: 'absolute', bottom: 48, left: 56, right: 56, color: '#fff' }}>
+        <div className="ee-detail-hero-text">
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
             <span className="ee-tag ee-tag-gold">
               {formatET(date, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
@@ -72,17 +72,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
       </section>
 
       {/* Detail body */}
-      <section style={{ padding: '56px 56px 96px', display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 56 }}>
+      <section className="ee-detail-body">
         {/* Main */}
         <div>
           {/* Quick facts */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', border: '1px solid var(--ee-line)', borderRadius: 10, overflow: 'hidden', marginBottom: 48 }}>
+          <div className="ee-detail-facts">
             {[
               { icon: CAL, label: 'When', value: formatET(date, { weekday: 'short', month: 'short', day: 'numeric' }), sub: `${formatTimeRange(date, event.end_date)} ET` },
               { icon: PIN, label: 'Where', value: event.location ?? 'TBA', sub: event.university ?? event.state ?? '' },
               { icon: COMPASS, label: 'Capacity', value: event.capacity != null ? `${going} / ${event.capacity}` : `${going} going`, sub: spotsLeft != null ? `${spotsLeft} spots remaining` : '' },
-            ].map(({ icon, label, value, sub }, i) => (
-              <div key={label} style={{ padding: '20px 18px', borderRight: i < 2 ? '1px solid var(--ee-line)' : 'none' }}>
+            ].map(({ icon, label, value, sub }) => (
+              <div key={label} className="ee-detail-fact">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
                   <Icon d={icon} size={13} color="var(--ee-gold-deep)" />
                   <span className="ee-mono">{label}</span>
@@ -103,7 +103,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
         {/* RSVP */}
         <div>
-          <div style={{ position: 'sticky', top: 100, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="ee-detail-sidebar">
             {/* Participant meter */}
             {event.capacity != null && (
               <div style={{ background: 'var(--ee-navy-900)', color: '#fff', borderRadius: 12, padding: 24 }}>

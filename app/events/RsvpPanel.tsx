@@ -102,6 +102,7 @@ export default function RsvpPanel(props: RsvpPanelProps) {
 
   const ageBlocked = requires21Plus && ageAnswer === false;
   const ageUnanswered = requires21Plus && ageAnswer === null;
+  const longAgreeLabel = (waiver?.agreeLabel.length ?? 0) > 120;
   const waiverReady =
     form.agreed && form.signatureName.trim() && form.emergencyContactName.trim() && form.emergencyContactPhone.trim();
 
@@ -322,8 +323,18 @@ export default function RsvpPanel(props: RsvpPanelProps) {
               <input className="ee-input" value={form.emergencyContactPhone} onChange={(e) => set('emergencyContactPhone', e.target.value)} />
             </Field>
 
-            <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', fontSize: 14, color: 'var(--ee-ink-2)', cursor: 'pointer', lineHeight: 1.5 }}>
-              <input type="checkbox" checked={form.agreed} onChange={(e) => set('agreed', e.target.checked)} style={{ marginTop: 4, flexShrink: 0 }} />
+            {/* A long consent clause is part of the document, so it gets the
+                same small type and box as the waiver body. */}
+            <label
+              style={{
+                display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer',
+                color: 'var(--ee-ink-2)',
+                ...(longAgreeLabel
+                  ? { fontSize: 12.5, lineHeight: 1.55, padding: 14, background: 'var(--ee-paper-2)', border: '1px solid var(--ee-line)', borderRadius: 8 }
+                  : { fontSize: 14, lineHeight: 1.5 }),
+              }}
+            >
+              <input type="checkbox" checked={form.agreed} onChange={(e) => set('agreed', e.target.checked)} style={{ marginTop: longAgreeLabel ? 2 : 4, flexShrink: 0 }} />
               <span>{waiver.agreeLabel}</span>
             </label>
 

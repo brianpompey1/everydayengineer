@@ -51,7 +51,7 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
       {/* Hero */}
       <section className="ee-detail-hero">
-        <EEPhoto tone="warm" label="" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
+        <EEPhoto tone="warm" src={event.cover_image} alt={event.title} label="" style={{ position: 'absolute', inset: 0, borderRadius: 0 }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,19,37,0.2) 0%, rgba(10,19,37,0.75) 100%)' }} />
 
         <div className="ee-detail-back">

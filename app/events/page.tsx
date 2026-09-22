@@ -28,6 +28,7 @@ export default async function EventsPage() {
     category: e.category,
     location: e.location,
     eventDate: e.event_date,
+    coverImage: e.cover_image,
     capacity: e.capacity,
     going: e.rsvp_count ?? 0,
     rsvpStatus: rsvpMap[e.id] ?? null,

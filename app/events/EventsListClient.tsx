@@ -42,6 +42,7 @@ export interface EventListItem {
   category: string | null;
   location: string | null;
   eventDate: string;
+  coverImage: string | null;
   capacity: number | null;
   going: number;
   rsvpStatus: string | null;
@@ -149,7 +150,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
             <section style={{ padding: '40px 56px 24px' }}>
               <div className="ee-mono" style={{ color: 'var(--ee-gold-deep)', marginBottom: 14 }}>FEATURED · UP NEXT</div>
               <Link href={`/events/${featured.id}`} className="ee-featured-grid ee-card-hover" style={{ background: 'var(--ee-paper)', border: '1px solid var(--ee-line)', borderRadius: 12, overflow: 'hidden' }}>
-                <EEPhoto tone="warm" label={(featured.category ?? '').toUpperCase()} style={{ aspectRatio: '5/3', borderRadius: 0 }} />
+                <EEPhoto tone="warm" src={featured.coverImage} alt={featured.title} label={featured.coverImage ? '' : (featured.category ?? '').toUpperCase()} style={{ aspectRatio: '5/3', borderRadius: 0 }} />
                 <div style={{ padding: 36, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                   <div>
                     <span className="ee-tag ee-tag-gold">
@@ -191,7 +192,7 @@ export default function EventsListClient({ events }: { events: EventListItem[] }
                       <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>{etDateParts(date).day}</div>
                       <div className="ee-small" style={{ fontSize: 10, marginTop: 4 }}>{formatET(date, { weekday: 'short' }).toUpperCase()}</div>
                     </div>
-                    <EEPhoto tone={TONES[i % TONES.length]} label="" className="ee-event-photo" style={{ aspectRatio: '1/1', borderRadius: 6 }} />
+                    <EEPhoto tone={TONES[i % TONES.length]} src={e.coverImage} alt="" label="" className="ee-event-photo" style={{ aspectRatio: '1/1', borderRadius: 6 }} />
                     <div className="ee-event-info">
                       {e.category && (
                         <div style={{ marginBottom: 6 }}>

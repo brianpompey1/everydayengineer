@@ -50,8 +50,11 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
   if (state.kind !== 'ready') return null;
   const { event, rsvp, priceCents } = state;
 
-  if (rsvp.stripe_session_id) {
-    const existing = await stripe().checkout.sessions.retrieve(rsvp.stripe_session_id);
+  // A session from the other mode (test vs live) can't be looked up — start fresh.
+  const existing = rsvp.stripe_session_id
+    ? await stripe().checkout.sessions.retrieve(rsvp.stripe_session_id).catch(() => null)
+    : null;
+  if (existing) {
     if (existing.status === 'open' && existing.url && existing.amount_total === priceCents) {
       return existing.url;
     }
@@ -115,8 +118,8 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
 export async function syncPayment(rsvpId: string): Promise<void> {
   const rsvp = await getRsvpById(rsvpId);
   if (!rsvp || rsvp.paid_at || !rsvp.stripe_session_id) return;
-  const session = await stripe().checkout.sessions.retrieve(rsvp.stripe_session_id);
-  if (session.payment_status === 'paid') await markPaid(session);
+  const session = await stripe().checkout.sessions.retrieve(rsvp.stripe_session_id).catch(() => null);
+  if (session?.payment_status === 'paid') await markPaid(session);
 }
 
 /** Records a completed payment and sends the confirmation — exactly once. */

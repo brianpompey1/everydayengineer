@@ -73,6 +73,10 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
   const session = await stripe().checkout.sessions.create(
     {
       mode: 'payment',
+      // Managed Payments (Stripe as seller, for digital goods) is on by default
+      // for new accounts and rejects these sessions. In-person event tickets
+      // are a normal direct sale.
+      managed_payments: { enabled: false },
       line_items: [
         {
           quantity: 1,

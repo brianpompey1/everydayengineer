@@ -12,6 +12,8 @@ const isPublicRoute = createRouteMatcher([
   // Approval-email confirm links work without logging in; the signed token
   // in the URL is the authorisation.
   '/confirm(.*)',
+  // Same for the payment link in paid-event approval emails.
+  '/pay(.*)',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {

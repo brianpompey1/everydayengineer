@@ -8,6 +8,7 @@ import { getEventById } from '@/lib/events';
 import { getOrCreateMember } from '@/lib/members';
 import { getRsvp } from '@/lib/rsvps';
 import { readEventWaiver } from '@/lib/waiver';
+import { payUrl } from '@/lib/confirm';
 import RsvpPanel from '../RsvpPanel';
 import { formatET, formatTimeRange } from '@/lib/datetime';
 
@@ -63,6 +64,11 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             <span className="ee-tag ee-tag-gold">
               {formatET(date, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).toUpperCase()}
             </span>
+            {event.price_cents && (
+              <span className="ee-tag" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+                ${(event.price_cents / 100).toFixed(event.price_cents % 100 === 0 ? 0 : 2)}
+              </span>
+            )}
             {event.category && (
               <span className="ee-tag" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>{event.category}</span>
             )}
@@ -133,9 +139,21 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
               allowSpectators={event.allow_spectators}
               requires21Plus={event.requires_21_plus}
               waiver={readEventWaiver(event)}
+              priceCents={event.price_cents}
+              payUrl={
+                rsvp && event.price_cents && rsvp.status === 'approved' && !rsvp.paid_at
+                  ? payUrl(rsvp.id)
+                  : null
+              }
               rsvp={
                 rsvp
-                  ? { attendee_type: rsvp.attendee_type, status: rsvp.status, attendance_confirmed_at: rsvp.attendance_confirmed_at }
+                  ? {
+                      attendee_type: rsvp.attendee_type,
+                      status: rsvp.status,
+                      attendance_confirmed_at: rsvp.attendance_confirmed_at,
+                      paid_at: rsvp.paid_at,
+                      amount_paid_cents: rsvp.amount_paid_cents,
+                    }
                   : null
               }
               profile={{

@@ -15,6 +15,10 @@ export interface Rsvp {
   updated_at: string | null;
   /** Set when an approved player confirms they'll actually be there. */
   attendance_confirmed_at: string | null;
+  /** Paid events only: set when Stripe confirms the payment. */
+  paid_at: string | null;
+  amount_paid_cents: number | null;
+  stripe_session_id: string | null;
 }
 
 /** Approved players fill roster spots. Everything else does not. */
@@ -22,6 +26,7 @@ export interface EventCounts {
   players: number;      // approved players — counts against capacity
   spectators: number;   // approved spectators — uncapped
   pending: number;      // players awaiting a roster decision
+  paid: number;         // approved players who have paid — fills spots on paid events
 }
 
 export async function getRsvp(eventId: string, memberId: string): Promise<Rsvp | null> {
@@ -37,12 +42,12 @@ export async function getRsvp(eventId: string, memberId: string): Promise<Rsvp |
 }
 
 export async function getEventCounts(eventIds: string[]): Promise<Record<string, EventCounts>> {
-  const empty = (): EventCounts => ({ players: 0, spectators: 0, pending: 0 });
+  const empty = (): EventCounts => ({ players: 0, spectators: 0, pending: 0, paid: 0 });
   if (eventIds.length === 0) return {};
 
   const { data, error } = await supabaseAdmin
     .from('rsvps')
-    .select('event_id, status, attendee_type')
+    .select('event_id, status, attendee_type, paid_at')
     .in('event_id', eventIds);
 
   if (error) throw error;
@@ -53,7 +58,10 @@ export async function getEventCounts(eventIds: string[]): Promise<Record<string,
   for (const row of data ?? []) {
     const c = counts[row.event_id];
     if (!c) continue;
-    if (row.status === 'approved' && row.attendee_type === 'player') c.players += 1;
+    if (row.status === 'approved' && row.attendee_type === 'player') {
+      c.players += 1;
+      if (row.paid_at) c.paid += 1;
+    }
     else if (row.status === 'approved' && row.attendee_type === 'spectator') c.spectators += 1;
     else if (row.status === 'pending' && row.attendee_type === 'player') c.pending += 1;
   }
@@ -199,6 +207,12 @@ export async function confirmAttendance(rsvpId: string): Promise<ConfirmOutcome>
 }
 
 export async function cancelRsvp(eventId: string, memberId: string): Promise<void> {
+  // A paid spot is never cancelled from the site — refunds are handled by hand.
+  const existing = await getRsvp(eventId, memberId);
+  if (existing?.paid_at) {
+    throw new Error("Your spot is already paid for. Can't make it? Email hello@everydayeng.com.");
+  }
+
   const { error } = await supabaseAdmin
     .from('rsvps')
     .delete()

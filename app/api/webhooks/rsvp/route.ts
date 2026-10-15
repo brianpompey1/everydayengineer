@@ -5,9 +5,10 @@ import {
   playerApproved,
   playerWaitlisted,
   playerDeclined,
+  paymentRequested,
   type EventEmailContext,
 } from '@/lib/email';
-import { confirmUrl } from '@/lib/confirm';
+import { confirmUrl, payUrl } from '@/lib/confirm';
 
 /**
  * Called by a Supabase Database Webhook whenever a row in `rsvps` changes.
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
     supabaseAdmin.from('members').select('email, full_name').eq('id', record.member_id).maybeSingle(),
     supabaseAdmin
       .from('events')
-      .select('title, event_date, end_date, location, venue_address, attendee_notes, allow_spectators')
+      .select('title, event_date, end_date, location, venue_address, attendee_notes, allow_spectators, price_cents')
       .eq('id', record.event_id)
       .maybeSingle(),
   ]);
@@ -98,20 +99,27 @@ export async function POST(req: Request) {
     return NextResponse.json({ skipped: 'member or event missing' });
   }
 
+  // On a paid event, approval means "you can pay now", not "you're in" — so
+  // no street address and no attendance link until they've paid.
+  const isPaid = Boolean(event.price_cents);
+
   const ctx: EventEmailContext = {
     eventTitle: event.title,
     eventDate: event.event_date,
     eventEndDate: event.end_date,
     location: event.location,
-    venueAddress: event.venue_address,
+    venueAddress: isPaid ? null : event.venue_address,
     attendeeNotes: event.attendee_notes,
     allowSpectators: event.allow_spectators,
     // Only approved players get the one-click "I'll be there" link.
-    confirmUrl: record.status === 'approved' ? confirmUrl(record.id) : null,
+    confirmUrl: record.status === 'approved' && !isPaid ? confirmUrl(record.id) : null,
+    priceCents: event.price_cents,
+    payUrl: record.status === 'approved' && isPaid ? payUrl(record.id) : null,
     memberName: member.full_name,
   };
 
   const mail =
+    record.status === 'approved' && isPaid ? paymentRequested(ctx) :
     record.status === 'approved'  ? playerApproved(ctx)  :
     record.status === 'waitlisted' ? playerWaitlisted(ctx) :
                                      playerDeclined(ctx);

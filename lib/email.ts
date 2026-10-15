@@ -3,6 +3,11 @@ import { Resend } from 'resend';
 
 const FROM = 'Everyday Engineer Club <noreply@everydayeng.com>';
 
+import { CONTACT_EMAIL } from './contact';
+export { CONTACT_EMAIL };
+
+const usd = (cents: number) => `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`;
+
 function client(): Resend | null {
   const key = process.env.RESEND_API_KEY;
   if (!key) return null;
@@ -102,6 +107,12 @@ export interface EventEmailContext {
   allowSpectators?: boolean;
   /** Whether the event has a waiver the participant signed. Defaults to true. */
   hasWaiver?: boolean;
+  /** Paid events: the price per participant. */
+  priceCents?: number | null;
+  /** Paid events: the signed link to the payment page. */
+  payUrl?: string | null;
+  /** Paid events: what Stripe actually charged. */
+  amountPaidCents?: number;
   memberName: string | null;
 }
 
@@ -147,12 +158,12 @@ function notesBlock(notes: string | null | undefined): string {
     </ul>`;
 }
 
-function confirmButton(url: string): string {
+function confirmButton(url: string, label = "Yes, I'll be there →"): string {
   const href = esc(url);
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" style="margin:20px 0 8px;">
       <tr><td style="background:#0F1A2E;border-radius:6px;">
-        <a href="${href}" style="display:inline-block;padding:14px 26px;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;">Yes, I'll be there →</a>
+        <a href="${href}" style="display:inline-block;padding:14px 26px;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;">${esc(label)}</a>
       </td></tr>
     </table>
     <p style="margin:0 0 14px;color:#5A6378;font-size:12px;">
@@ -188,6 +199,10 @@ export function playerRequestReceived(ctx: EventEmailContext) {
         <strong>we'll email you either way</strong>.
       </p>
       ${detailBlock([['Event', ctx.eventTitle], ['Date', dateLine(ctx)], ['Time', timeLine(ctx)], ['Where', ctx.location ?? 'TBA']])}
+      ${ctx.priceCents
+        ? `<p style="margin:14px 0 0;">This is a paid event: if you're accepted, we'll email you a link to pay
+             <strong>${usd(ctx.priceCents)}</strong> to lock in your spot. Payments are non-refundable.</p>`
+        : ''}
       <p style="margin:14px 0 0;">${
         ctx.allowSpectators === false
           ? "Requesting a spot doesn't guarantee one — we'll let you know either way."
@@ -216,6 +231,53 @@ export function playerApproved(ctx: EventEmailContext) {
       ${ctx.confirmUrl ? confirmButton(ctx.confirmUrl) : ''}
       ${notesBlock(ctx.attendeeNotes)}
       <p style="margin:18px 0 0;">Looking forward to seeing you on ${esc(weekday)}! ⚙️</p>
+    `),
+  };
+}
+
+const contactLine = () =>
+  `<p style="margin:14px 0 0;color:#5A6378;font-size:13px;">
+     Payments are non-refundable. Can't make it? Email
+     <a href="mailto:${CONTACT_EMAIL}" style="color:#5A6378;">${CONTACT_EMAIL}</a>.
+   </p>`;
+
+/** Paid events: sent on approval instead of playerApproved. */
+export function paymentRequested(ctx: EventEmailContext) {
+  const name = firstName(ctx.memberName);
+  const price = usd(ctx.priceCents ?? 0);
+  return {
+    subject: `You're accepted — complete your payment for ${ctx.eventTitle}`,
+    html: shell(`
+      ${heading("You're accepted.")}
+      <p style="margin:0 0 14px;">
+        Hey${name ? ` ${esc(name)}` : ' there'}! Good news — you've been accepted to
+        <strong>${esc(ctx.eventTitle)}</strong>. To lock in your spot, complete your
+        <strong>${price}</strong> payment below.
+      </p>
+      ${detailBlock([['Date', dateLine(ctx)], ['Time', timeLine(ctx)], ['Where', ctx.location ?? 'TBA']])}
+      ${ctx.payUrl ? confirmButton(ctx.payUrl, `Pay ${price} →`) : ''}
+      <p style="margin:14px 0 0;">Once you've paid, we'll send your confirmation with the full address.</p>
+      ${contactLine()}
+    `),
+  };
+}
+
+/** Paid events: sent once Stripe confirms the payment. */
+export function paymentConfirmed(ctx: EventEmailContext) {
+  const name = firstName(ctx.memberName);
+  const weekday = formatET(ctx.eventDate, { weekday: 'long' });
+  return {
+    subject: `You're in — ${ctx.eventTitle}`,
+    html: shell(`
+      ${heading("You're in. ✓")}
+      <p style="margin:0 0 14px;">
+        Hey${name ? ` ${esc(name)}` : ' there'}! Your${ctx.amountPaidCents ? ` ${usd(ctx.amountPaidCents)}` : ''}
+        payment is received and your spot at <strong>${esc(ctx.eventTitle)}</strong> is confirmed.
+      </p>
+      ${attendeeDetails(ctx, { includeEvent: false })}
+      ${notesBlock(ctx.attendeeNotes)}
+      <p style="margin:18px 0 0;">See you on ${esc(weekday)}! ⚙️</p>
+      ${contactLine()}
     `),
   };
 }

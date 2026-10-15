@@ -3,6 +3,9 @@
 import { useState, useTransition } from 'react';
 import { rsvpAction, cancelRsvpAction } from './actions';
 import { AGE_21_LABEL, type EventWaiver } from '@/lib/waiver';
+import { CONTACT_EMAIL } from '@/lib/contact';
+
+const usd = (cents: number) => `$${(cents / 100).toFixed(cents % 100 === 0 ? 0 : 2)}`;
 
 const DISCIPLINES = [
   'Civil Engineer', 'Mechanical Engineer', 'Electrical Engineer', 'Computer Engineer',
@@ -37,9 +40,21 @@ export interface RsvpPanelProps {
   allowSpectators: boolean;
   requires21Plus: boolean;
   waiver: EventWaiver | null;
-  rsvp: { attendee_type: string; status: string; attendance_confirmed_at: string | null } | null;
+  /** Paid events: price per participant, charged only once accepted. */
+  priceCents: number | null;
+  /** Paid events: signed payment link, once the member is accepted and unpaid. */
+  payUrl: string | null;
+  rsvp: RsvpSummary | null;
   profile: RsvpProfile;
 }
+
+type RsvpSummary = {
+  attendee_type: string;
+  status: string;
+  attendance_confirmed_at: string | null;
+  paid_at: string | null;
+  amount_paid_cents: number | null;
+};
 
 type Step = 'choose' | 'details' | 'waiver' | 'confirm';
 
@@ -49,7 +64,7 @@ const profileComplete = (p: { phone: string; companyOrSchool: string; profession
   Boolean(p.phone && p.companyOrSchool && p.professionalStatus && p.shirtSize);
 
 export default function RsvpPanel(props: RsvpPanelProps) {
-  const { eventId, eventTitle, spotsLeft, eventFull, allowSpectators, requires21Plus, waiver, rsvp, profile } = props;
+  const { eventId, eventTitle, spotsLeft, eventFull, allowSpectators, requires21Plus, waiver, priceCents, payUrl, rsvp, profile } = props;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState('');
 
@@ -92,7 +107,16 @@ export default function RsvpPanel(props: RsvpPanelProps) {
   );
 
   if (rsvp) {
-    return <StatusCard rsvp={rsvp} eventId={eventId} allowSpectators={allowSpectators} hasWaiver={waiver !== null} />;
+    return (
+      <StatusCard
+        rsvp={rsvp}
+        eventId={eventId}
+        allowSpectators={allowSpectators}
+        hasWaiver={waiver !== null}
+        priceCents={priceCents}
+        payUrl={payUrl}
+      />
+    );
   }
 
   const stepIndex = participantSteps.indexOf(step);
@@ -379,6 +403,12 @@ export default function RsvpPanel(props: RsvpPanelProps) {
       {attendeeType === 'player' && (
         <p className="ee-small" style={{ marginTop: 14, fontSize: 12 }}>
           Requesting a spot doesn&apos;t guarantee one — spots are limited and confirmed by an organizer.
+          {priceCents && (
+            <>
+              {' '}If you&apos;re accepted, we&apos;ll email you a link to pay {usd(priceCents)} to lock in your spot.
+              Payments are non-refundable.
+            </>
+          )}
         </p>
       )}
     </div>
@@ -387,17 +417,34 @@ export default function RsvpPanel(props: RsvpPanelProps) {
 
 // ── Status card for members who already responded ──────────
 function StatusCard({
-  rsvp, eventId, allowSpectators, hasWaiver,
+  rsvp, eventId, allowSpectators, hasWaiver, priceCents, payUrl,
 }: {
-  rsvp: { attendee_type: string; status: string; attendance_confirmed_at: string | null };
+  rsvp: RsvpSummary;
   eventId: string;
   allowSpectators: boolean;
   hasWaiver: boolean;
+  priceCents: number | null;
+  payUrl: string | null;
 }) {
   const [pending, startTransition] = useTransition();
   const isParticipant = rsvp.attendee_type === 'player';
+  const isPaidEvent = Boolean(priceCents);
+  const paid = Boolean(rsvp.paid_at);
+  const awaitingPayment = isPaidEvent && isParticipant && rsvp.status === 'approved' && !paid;
 
   const copy = (() => {
+    if (paid)
+      return {
+        tone: 'gold',
+        title: "You're in. ✓",
+        body: `Paid${rsvp.amount_paid_cents ? ` ${usd(rsvp.amount_paid_cents)}` : ''}. Your confirmation email has the address and details.`,
+      };
+    if (awaitingPayment)
+      return {
+        tone: 'gold',
+        title: "You're accepted!",
+        body: `Complete your ${usd(priceCents!)} payment to lock in your spot.`,
+      };
     if (rsvp.status === 'approved' && isParticipant)
       return rsvp.attendance_confirmed_at
         ? { tone: 'gold', title: "You're in — and confirmed.", body: 'See you there. Your email has the full details.' }
@@ -408,7 +455,9 @@ function StatusCard({
       return {
         tone: 'pending',
         title: 'Request received.',
-        body: `${hasWaiver ? 'Waiver signed. ' : ''}An organizer will confirm your spot before the event.`,
+        body: isPaidEvent
+          ? `${hasWaiver ? 'Waiver signed. ' : ''}If you're accepted, we'll email you a link to pay ${usd(priceCents!)} to lock in your spot.`
+          : `${hasWaiver ? 'Waiver signed. ' : ''}An organizer will confirm your spot before the event.`,
       };
     if (rsvp.status === 'waitlisted')
       return {
@@ -421,8 +470,12 @@ function StatusCard({
     return { tone: 'neutral', title: 'Not confirmed.', body: 'Reach out to an organizer if you think this is a mistake.' };
   })();
 
+  const statusLabel = paid ? 'PAID' : awaitingPayment ? 'ACCEPTED' : rsvp.status.toUpperCase();
   const bg = copy.tone === 'gold' ? 'rgba(184,140,14,0.14)' : copy.tone === 'pending' ? 'var(--ee-lavender)' : 'var(--ee-paper-2)';
   const border = copy.tone === 'gold' ? '1px solid var(--ee-gold-deep)' : '1px solid var(--ee-line)';
+  const contact = (
+    <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'inherit', borderBottom: '1px solid currentColor' }}>{CONTACT_EMAIL}</a>
+  );
 
   return (
     <div className="ee-card" style={{ padding: 28 }}>
@@ -432,20 +485,38 @@ function StatusCard({
           <span className="ee-tag" style={{ background: 'var(--ee-navy-900)', color: 'var(--ee-paper)', fontSize: 10 }}>
             {isParticipant ? 'PARTICIPANT' : 'SPECTATOR'}
           </span>
-          <span className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>{rsvp.status.toUpperCase()}</span>
+          <span className="ee-mono" style={{ color: 'var(--ee-ink-3)', fontSize: 10 }}>{statusLabel}</span>
         </div>
         <div style={{ fontWeight: 700, fontSize: 18 }}>{copy.title}</div>
         <p className="ee-body" style={{ marginTop: 6, fontSize: 14 }}>{copy.body}</p>
       </div>
 
-      <button
-        className="ee-btn ee-btn-ghost"
-        style={{ marginTop: 16, width: '100%' }}
-        disabled={pending}
-        onClick={() => startTransition(async () => { await cancelRsvpAction(eventId); })}
-      >
-        {pending ? 'Updating…' : isParticipant && allowSpectators ? 'Cancel or switch to spectator' : isParticipant ? 'Cancel my request' : 'Cancel my RSVP'}
-      </button>
+      {awaitingPayment && payUrl && (
+        <a href={payUrl} className="ee-btn ee-btn-dark" style={{ marginTop: 16, width: '100%', padding: 16, justifyContent: 'center', textAlign: 'center' }}>
+          Pay {usd(priceCents!)} →
+        </a>
+      )}
+
+      {paid ? (
+        // Paid spots aren't cancelled from the site — no refunds, handled by email.
+        <p className="ee-small" style={{ marginTop: 16, lineHeight: 1.5 }}>
+          Payments are non-refundable. Can&apos;t make it? Email {contact}.
+        </p>
+      ) : (
+        <button
+          className="ee-btn ee-btn-ghost"
+          style={{ marginTop: awaitingPayment ? 10 : 16, width: '100%' }}
+          disabled={pending}
+          onClick={() => startTransition(async () => { await cancelRsvpAction(eventId); })}
+        >
+          {pending
+            ? 'Updating…'
+            : awaitingPayment ? 'Give up my spot'
+            : isParticipant && allowSpectators ? 'Cancel or switch to spectator'
+            : isParticipant ? 'Cancel my request'
+            : 'Cancel my RSVP'}
+        </button>
+      )}
     </div>
   );
 }

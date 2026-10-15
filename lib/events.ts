@@ -25,6 +25,8 @@ export interface EventRow {
   waiver_title: string | null;
   waiver_text: string | null;
   waiver_agree_label: string | null;
+  /** Price per participant in cents. Null for free events. */
+  price_cents: number | null;
   event_date: string;
   end_date: string | null;
   cover_image: string | null;
@@ -36,9 +38,15 @@ export interface EventRow {
   updated_at: string;
   state: string | null;
   university: string | null;
-  /** Approved players — the number that counts against capacity. */
+  /** Spots taken: paid participants on paid events, approved ones otherwise. */
   rsvp_count?: number;
   counts?: EventCounts;
+}
+
+/** On a paid event, a spot is only taken once it's paid for. */
+function spotsTaken(event: { price_cents: number | null }, counts: EventCounts | undefined): number {
+  if (!counts) return 0;
+  return event.price_cents ? counts.paid : counts.players;
 }
 
 /** Midnight this morning, so an event still shows on the day it happens. */
@@ -64,7 +72,7 @@ export async function getPublishedEvents(): Promise<EventRow[]> {
   return events.map((e) => ({
     ...e,
     counts: counts[e.id],
-    rsvp_count: counts[e.id]?.players ?? 0,
+    rsvp_count: spotsTaken(e, counts[e.id]),
   }));
 }
 
@@ -82,7 +90,7 @@ export async function getEventById(id: string): Promise<EventRow | null> {
   return {
     ...(data as EventRow),
     counts: counts[id],
-    rsvp_count: counts[id]?.players ?? 0,
+    rsvp_count: spotsTaken(data as EventRow, counts[id]),
   };
 }
 

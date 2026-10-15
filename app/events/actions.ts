@@ -98,6 +98,7 @@ export async function rsvpAction(input: RsvpFormInput): Promise<RsvpActionResult
           venueAddress: input.attendeeType === 'spectator' ? event.venue_address : null,
           allowSpectators: event.allow_spectators,
           hasWaiver: rules.waiver !== null,
+          priceCents: event.price_cents,
           memberName: member.full_name,
         };
         const mail =

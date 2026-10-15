@@ -109,7 +109,10 @@ export default async function PayPage({
                 <Note>Payment wasn&apos;t completed, so you haven&apos;t been charged. You can try again below.</Note>
               )}
               {error && (
-                <Note tone="error">We couldn&apos;t open the payment page. Please try again in a moment.</Note>
+                <Note tone="error">
+                  We couldn&apos;t open the payment page. Please try again in a moment.
+                  <span style={{ display: 'block', marginTop: 4, fontSize: 11, opacity: 0.7 }}>Error code: {error}</span>
+                </Note>
               )}
 
               <form action={startCheckoutAction.bind(null, rsvpId, token ?? '')} style={{ marginTop: 24 }}>

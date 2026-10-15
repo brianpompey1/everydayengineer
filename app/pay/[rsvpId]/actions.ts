@@ -18,8 +18,15 @@ export async function startCheckoutAction(rsvpId: string, token: string): Promis
     url = await startCheckout(rsvpId);
   } catch (err) {
     console.error('[pay] could not start checkout:', err);
-    redirect(`${back}&error=1`);
+    redirect(`${back}&error=${encodeURIComponent(errorCode(err))}`);
   }
   // No URL means the state changed (already paid, sold out…) — the page shows why.
   redirect(url ?? back);
+}
+
+/** A short, non-secret reason shown on the page, so failures can be diagnosed. */
+function errorCode(err: unknown): string {
+  const e = err as { code?: string; type?: string; message?: string };
+  if (e?.message?.includes('STRIPE_SECRET_KEY')) return 'missing_key';
+  return e?.code || e?.type || 'unknown';
 }

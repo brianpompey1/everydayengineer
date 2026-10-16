@@ -169,7 +169,9 @@ export async function markPaid(session: Stripe.Checkout.Session): Promise<void> 
     venueAddress: event.venue_address,
     attendeeNotes: event.attendee_notes,
     memberName: member.full_name,
+    // A 100%-off code gives amount_total 0, which the email treats as "no payment line".
     amountPaidCents: session.amount_total ?? event.price_cents ?? undefined,
+    confirmedMessage: event.confirmed_email_message,
   });
   const result = await sendEmail({ to: member.email, ...mail });
   if (!result.ok) console.error('[payments] confirmation email failed for', rsvpId, result.error);

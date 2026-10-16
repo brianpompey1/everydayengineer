@@ -27,6 +27,9 @@ export interface EventRow {
   waiver_agree_label: string | null;
   /** Price per participant in cents. Null for free events. */
   price_cents: number | null;
+  /** Event-specific wording for the confirmation and waitlist emails. */
+  confirmed_email_message?: string | null;
+  waitlist_email_message?: string | null;
   event_date: string;
   end_date: string | null;
   cover_image: string | null;

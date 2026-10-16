@@ -113,6 +113,10 @@ export interface EventEmailContext {
   payUrl?: string | null;
   /** Paid events: what Stripe actually charged. */
   amountPaidCents?: number;
+  /** The event's own wording for the "you're confirmed" email, if set. */
+  confirmedMessage?: string | null;
+  /** The event's own wording for the waitlist email, if set. */
+  waitlistMessage?: string | null;
   memberName: string | null;
 }
 
@@ -170,6 +174,18 @@ function confirmButton(url: string, label = "Yes, I'll be there →"): string {
       Button not working? Paste this into your browser:<br>
       <a href="${href}" style="color:#5A6378;word-break:break-all;">${href}</a>
     </p>`;
+}
+
+const hasText = (text: string | null | undefined): text is string => Boolean(text?.trim());
+
+/** Organizer-written copy from the event row: blank lines separate paragraphs. */
+function messageParagraphs(text: string): string {
+  return text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `<p style="margin:0 0 14px;">${esc(p).replace(/\n/g, '<br>')}</p>`)
+    .join('');
 }
 
 // ── Templates ──────────────────────────────────────────────
@@ -266,6 +282,28 @@ export function paymentRequested(ctx: EventEmailContext) {
 export function paymentConfirmed(ctx: EventEmailContext) {
   const name = firstName(ctx.memberName);
   const weekday = formatET(ctx.eventDate, { weekday: 'long' });
+
+  if (hasText(ctx.confirmedMessage)) {
+    return {
+      subject: `You're in — ${ctx.eventTitle}`,
+      html: shell(`
+        ${heading('Your spot is confirmed.')}
+        ${greet(ctx.memberName)}
+        ${messageParagraphs(ctx.confirmedMessage)}
+        ${detailBlock([
+          ['Date', dateLine(ctx)],
+          ['Time', timeLine(ctx)],
+          ['Location', [ctx.location, ctx.venueAddress].filter(Boolean).join(' · ') || 'TBA'],
+          ...(ctx.amountPaidCents ? ([['Paid', usd(ctx.amountPaidCents)]] as [string, string][]) : []),
+        ])}
+        ${ctx.venueAddress
+          ? `<p style="margin:0 0 14px;color:#5A6378;font-size:13px;">Please keep the address to yourself — it's only shared with confirmed attendees.</p>`
+          : ''}
+        ${contactLine()}
+      `),
+    };
+  }
+
   return {
     subject: `You're in — ${ctx.eventTitle}`,
     html: shell(`
@@ -287,6 +325,18 @@ export function paymentConfirmed(ctx: EventEmailContext) {
 
 export function playerWaitlisted(ctx: EventEmailContext) {
   const spectatorsWelcome = ctx.allowSpectators !== false;
+
+  if (hasText(ctx.waitlistMessage)) {
+    return {
+      subject: `About your request — ${ctx.eventTitle}`,
+      html: shell(`
+        ${heading('Thank you for your interest.')}
+        ${greet(ctx.memberName)}
+        ${messageParagraphs(ctx.waitlistMessage)}
+      `),
+    };
+  }
+
   return {
     subject: `You're on the waitlist — ${ctx.eventTitle}`,
     html: shell(`

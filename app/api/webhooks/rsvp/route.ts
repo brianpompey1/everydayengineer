@@ -82,7 +82,8 @@ export async function POST(req: Request) {
     supabaseAdmin.from('members').select('email, full_name').eq('id', record.member_id).maybeSingle(),
     supabaseAdmin
       .from('events')
-      .select('title, event_date, end_date, location, venue_address, attendee_notes, allow_spectators, price_cents')
+      // '*' so newly added event columns never break this lookup.
+      .select('*')
       .eq('id', record.event_id)
       .maybeSingle(),
   ]);
@@ -114,6 +115,7 @@ export async function POST(req: Request) {
     // Only approved players get the one-click "I'll be there" link.
     confirmUrl: record.status === 'approved' && !isPaid ? confirmUrl(record.id) : null,
     priceCents: event.price_cents,
+    waitlistMessage: event.waitlist_email_message,
     payUrl: record.status === 'approved' && isPaid ? payUrl(record.id) : null,
     memberName: member.full_name,
   };

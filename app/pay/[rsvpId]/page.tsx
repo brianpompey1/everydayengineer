@@ -121,6 +121,8 @@ export default async function PayPage({
                 </button>
               </form>
               <p className="ee-small" style={{ marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
+                Have a discount code? Enter it on the next page.
+                <br />
                 Secure checkout by Stripe. Payments are non-refundable.
                 <br />
                 Can&apos;t make it? Email <Contact />.
@@ -133,8 +135,10 @@ export default async function PayPage({
               <Eyebrow>CONFIRMED</Eyebrow>
               <Title>You&apos;re in. ✓</Title>
               <p className="ee-body" style={{ marginTop: 10 }}>
-                {state.rsvp.amount_paid_cents ? `Your ${formatUSD(state.rsvp.amount_paid_cents)} payment` : 'Your payment'} is
-                received and your spot is confirmed. We&apos;ve emailed you the details.
+                {state.rsvp.amount_paid_cents
+                  ? `Your ${formatUSD(state.rsvp.amount_paid_cents)} payment is received and your spot is confirmed.`
+                  : 'Your spot is confirmed.'}{' '}
+                We&apos;ve emailed you the details.
               </p>
               <Details
                 rows={[

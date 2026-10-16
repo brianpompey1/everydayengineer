@@ -19,6 +19,8 @@ export interface Rsvp {
   paid_at: string | null;
   amount_paid_cents: number | null;
   stripe_session_id: string | null;
+  /** Promotion code used at checkout, if any. */
+  discount_code: string | null;
 }
 
 /** Approved players fill roster spots. Everything else does not. */

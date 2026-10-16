@@ -58,7 +58,7 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
     if (existing.status === 'open' && existing.url && existing.amount_total === priceCents) {
       return existing.url;
     }
-    if (existing.payment_status === 'paid') {
+    if (isSettled(existing)) {
       await markPaid(existing);
       return null;
     }
@@ -76,6 +76,9 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
   const session = await stripe().checkout.sessions.create(
     {
       mode: 'payment',
+      // Shows "Add promotion code" on Stripe's page. Codes are created and
+      // limited in the Stripe dashboard (Product catalog → Coupons).
+      allow_promotion_codes: true,
       // Managed Payments (Stripe as seller, for digital goods) is on by default
       // for new accounts and rejects these sessions. In-person event tickets
       // are a normal direct sale.
@@ -111,6 +114,11 @@ export async function startCheckout(rsvpId: string): Promise<string | null> {
   return session.url;
 }
 
+/** Paid, or made free by a 100%-off code — either way the spot is settled. */
+const isSettled = (session: Stripe.Checkout.Session) =>
+  session.status === 'complete' &&
+  (session.payment_status === 'paid' || session.payment_status === 'no_payment_required');
+
 /**
  * When the participant lands back on our page before Stripe's webhook has
  * arrived, ask Stripe directly so they see "You're in" straight away.
@@ -119,13 +127,15 @@ export async function syncPayment(rsvpId: string): Promise<void> {
   const rsvp = await getRsvpById(rsvpId);
   if (!rsvp || rsvp.paid_at || !rsvp.stripe_session_id) return;
   const session = await stripe().checkout.sessions.retrieve(rsvp.stripe_session_id).catch(() => null);
-  if (session?.payment_status === 'paid') await markPaid(session);
+  if (session && isSettled(session)) await markPaid(session);
 }
 
 /** Records a completed payment and sends the confirmation — exactly once. */
 export async function markPaid(session: Stripe.Checkout.Session): Promise<void> {
   const rsvpId = session.client_reference_id ?? session.metadata?.rsvp_id;
-  if (!rsvpId || session.payment_status !== 'paid') return;
+  if (!rsvpId || !isSettled(session)) return;
+
+  const discountCode = await promotionCodeUsed(session.id);
 
   // The `paid_at is null` guard makes this a no-op if the webhook and the
   // return page race, so only one of them sends the email.
@@ -135,6 +145,7 @@ export async function markPaid(session: Stripe.Checkout.Session): Promise<void> 
       paid_at: new Date().toISOString(),
       amount_paid_cents: session.amount_total,
       stripe_session_id: session.id,
+      discount_code: discountCode,
     })
     .eq('id', rsvpId)
     .is('paid_at', null)
@@ -162,4 +173,21 @@ export async function markPaid(session: Stripe.Checkout.Session): Promise<void> 
   });
   const result = await sendEmail({ to: member.email, ...mail });
   if (!result.ok) console.error('[payments] confirmation email failed for', rsvpId, result.error);
+}
+
+/**
+ * The promotion code typed at checkout, e.g. "EECSTUDENT", for the admin
+ * record. Best-effort: if it can't be read, the payment still records.
+ */
+async function promotionCodeUsed(sessionId: string): Promise<string | null> {
+  try {
+    const session = await stripe().checkout.sessions.retrieve(sessionId, {
+      expand: ['discounts.promotion_code'],
+    });
+    const promo = session.discounts?.[0]?.promotion_code;
+    return promo && typeof promo === 'object' ? promo.code : null;
+  } catch (err) {
+    console.error('[payments] could not read promotion code:', err);
+    return null;
+  }
 }

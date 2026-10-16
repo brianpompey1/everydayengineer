@@ -271,8 +271,11 @@ export function paymentConfirmed(ctx: EventEmailContext) {
     html: shell(`
       ${heading("You're in. ✓")}
       <p style="margin:0 0 14px;">
-        Hey${name ? ` ${esc(name)}` : ' there'}! Your${ctx.amountPaidCents ? ` ${usd(ctx.amountPaidCents)}` : ''}
-        payment is received and your spot at <strong>${esc(ctx.eventTitle)}</strong> is confirmed.
+        Hey${name ? ` ${esc(name)}` : ' there'}! ${
+          ctx.amountPaidCents
+            ? `Your ${usd(ctx.amountPaidCents)} payment is received and your spot at`
+            : 'Your spot at'
+        } <strong>${esc(ctx.eventTitle)}</strong> is confirmed.
       </p>
       ${attendeeDetails(ctx, { includeEvent: false })}
       ${notesBlock(ctx.attendeeNotes)}

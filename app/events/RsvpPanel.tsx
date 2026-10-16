@@ -437,7 +437,7 @@ function StatusCard({
       return {
         tone: 'gold',
         title: "You're in. ✓",
-        body: `Paid${rsvp.amount_paid_cents ? ` ${usd(rsvp.amount_paid_cents)}` : ''}. Your confirmation email has the address and details.`,
+        body: `${rsvp.amount_paid_cents ? `Paid ${usd(rsvp.amount_paid_cents)}. ` : ''}Your confirmation email has the address and details.`,
       };
     if (awaitingPayment)
       return {
@@ -470,7 +470,7 @@ function StatusCard({
     return { tone: 'neutral', title: 'Not confirmed.', body: 'Reach out to an organizer if you think this is a mistake.' };
   })();
 
-  const statusLabel = paid ? 'PAID' : awaitingPayment ? 'ACCEPTED' : rsvp.status.toUpperCase();
+  const statusLabel = paid ? (rsvp.amount_paid_cents ? 'PAID' : 'CONFIRMED') : awaitingPayment ? 'ACCEPTED' : rsvp.status.toUpperCase();
   const bg = copy.tone === 'gold' ? 'rgba(184,140,14,0.14)' : copy.tone === 'pending' ? 'var(--ee-lavender)' : 'var(--ee-paper-2)';
   const border = copy.tone === 'gold' ? '1px solid var(--ee-gold-deep)' : '1px solid var(--ee-line)';
   const contact = (

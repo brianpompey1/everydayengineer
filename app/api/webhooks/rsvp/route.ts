@@ -115,6 +115,7 @@ export async function POST(req: Request) {
     // Only approved players get the one-click "I'll be there" link.
     confirmUrl: record.status === 'approved' && !isPaid ? confirmUrl(record.id) : null,
     priceCents: event.price_cents,
+    confirmedMessage: event.confirmed_email_message,
     waitlistMessage: event.waitlist_email_message,
     payUrl: record.status === 'approved' && isPaid ? payUrl(record.id) : null,
     memberName: member.full_name,

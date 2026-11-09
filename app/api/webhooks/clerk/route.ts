@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { WebhookEvent } from '@clerk/nextjs/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getOrCreateMember } from '@/lib/members';
+import { addMemberContact, removeMemberContact } from '@/lib/audience';
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -49,11 +50,17 @@ export async function POST(req: Request) {
       fullName: full_name,
       avatarUrl: image_url ?? null,
     });
+
+    // Every new member joins the email list for blasts.
+    await addMemberContact({ email, fullName: full_name });
   }
 
   if (evt.type === 'user.deleted') {
     const { id } = evt.data;
+    const { data: member } = await supabaseAdmin.from('members').select('email').eq('clerk_id', id).maybeSingle();
     await supabaseAdmin.from('members').delete().eq('clerk_id', id);
+    // A deleted account leaves the email list too.
+    if (member?.email) await removeMemberContact(member.email);
   }
 
   return new Response('OK', { status: 200 });

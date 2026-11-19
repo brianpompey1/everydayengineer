@@ -302,6 +302,7 @@ export function paymentRequested(ctx: EventEmailContext) {
       </p>
       ${detailBlock([['Date', dateLine(ctx)], ['Time', timeLine(ctx)], ['Where', ctx.location ?? 'TBA']])}
       ${ctx.payUrl ? confirmButton(ctx.payUrl, `Pay ${price} →`) : ''}
+      ${notesBlock(ctx.attendeeNotes)}
       <p style="margin:14px 0 0;">Once you've paid, we'll send your confirmation with the full address.</p>
       ${contactLine()}
     `),

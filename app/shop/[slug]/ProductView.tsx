@@ -32,6 +32,7 @@ export default function ProductView({ product, catalog, email }: { product: Prod
   );
   const ready = isSet ? partChoices.every((c) => c.picked && c.picked.stock > 0) : Boolean(chosenVariant && chosenVariant.stock > 0);
   const soldOutPick = !isSet && chosenVariant && chosenVariant.stock === 0 ? chosenVariant : null;
+  const allSoldOut = !isSet && product.variants.every((v) => v.stock === 0);
 
   function add() {
     if (!ready) return;
@@ -49,6 +50,11 @@ export default function ProductView({ product, catalog, email }: { product: Prod
       <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{product.name}</h1>
       <div style={{ fontSize: 22, fontWeight: 700, marginTop: 10 }}>{usd(product.price_cents)}</div>
       {product.description && <p className="ee-body" style={{ marginTop: 16, fontSize: 15 }}>{product.description}</p>}
+      {allSoldOut && !soldOutPick && (
+        <div style={{ marginTop: 18, padding: '12px 14px', background: 'var(--ee-paper-2)', borderRadius: 6, fontSize: 14 }}>
+          <strong>Sold out.</strong> {oneSize ? '' : 'Choose your size '}to get an email when it&apos;s back.
+        </div>
+      )}
 
       {/* Regular product: sizes */}
       {!isSet && !oneSize && (

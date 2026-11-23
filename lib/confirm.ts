@@ -14,7 +14,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
  * confirm token can't be used as a payment token. Rotating that secret
  * invalidates any links already sent.
  */
-type Purpose = 'rsvp-confirm' | 'rsvp-pay';
+type Purpose = 'rsvp-confirm' | 'rsvp-pay' | 'shop-order';
 
 function key(): string {
   const secret = process.env.RSVP_WEBHOOK_SECRET;
@@ -62,4 +62,17 @@ export function verifyPayToken(rsvpId: string, token: string | undefined | null)
 
 export function payUrl(rsvpId: string): string {
   return `${SITE_URL}/pay/${rsvpId}?t=${payToken(rsvpId)}`;
+}
+
+/** Shop orders: lets the buyer view their order page without an account. */
+export function orderToken(orderId: string): string {
+  return sign('shop-order', orderId).toString('base64url');
+}
+
+export function verifyOrderToken(orderId: string, token: string | undefined | null): boolean {
+  return verify('shop-order', orderId, token);
+}
+
+export function orderUrl(orderId: string): string {
+  return `${SITE_URL}/shop/order/${orderId}?t=${orderToken(orderId)}`;
 }

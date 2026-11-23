@@ -45,6 +45,24 @@ export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ ok: 
   }
 }
 
+/**
+ * Sends many separate emails in one request (Resend batch, up to 100). Each
+ * recipient gets their own copy — nobody sees anyone else's address.
+ */
+export async function sendBatch(messages: SendArgs[]): Promise<{ ok: boolean; error?: string }> {
+  const resend = client();
+  if (!resend) return { ok: false, error: 'Email not configured' };
+  try {
+    for (let i = 0; i < messages.length; i += 100) {
+      const { error } = await resend.batch.send(messages.slice(i, i + 100).map((m) => ({ from: FROM, ...m })));
+      if (error) return { ok: false, error: String(error.message ?? error) };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
 // ── Shell ──────────────────────────────────────────────────
 function shell(bodyHtml: string): string {
   return `
@@ -404,6 +422,139 @@ export function playerDeclined(ctx: EventEmailContext) {
         like to join a future run, just reach out to an organizer.
       </p>
       ${detailBlock([['Event', ctx.eventTitle], ['Date', dateLine(ctx)]])}
+    `),
+  };
+}
+
+// ── Shop ───────────────────────────────────────────────────
+
+interface OrderEmailContext {
+  order: {
+    id: string;
+    fulfillment: 'ship' | 'pickup';
+    customer_name: string | null;
+    email: string | null;
+    phone: string | null;
+    shipping_address: {
+      line1?: string | null; line2?: string | null; city?: string | null;
+      state?: string | null; postal_code?: string | null; country?: string | null;
+    } | null;
+    subtotal_cents: number;
+    shipping_cents: number | null;
+    tax_cents: number | null;
+    total_cents: number | null;
+  };
+  items: { name: string; detail: string | null; unit_cents: number; quantity: number }[];
+}
+
+const orderNumber = (id: string) => id.slice(0, 8).toUpperCase();
+
+function addressLines(a: OrderEmailContext['order']['shipping_address']): string[] {
+  if (!a) return [];
+  return [a.line1, a.line2, [a.city, a.state].filter(Boolean).join(', ') + (a.postal_code ? ` ${a.postal_code}` : '')]
+    .map((l) => (l ?? '').trim())
+    .filter(Boolean);
+}
+
+function orderTable({ order, items }: OrderEmailContext): string {
+  const row = (label: string, value: string, strong = false) => `
+    <tr>
+      <td style="padding:6px 0;color:${strong ? '#0F1A2E' : '#5A6378'};font-size:14px;${strong ? 'font-weight:700;' : ''}">${label}</td>
+      <td style="padding:6px 0;text-align:right;color:#0F1A2E;font-size:14px;${strong ? 'font-weight:700;' : ''}">${value}</td>
+    </tr>`;
+  const lines = items
+    .map((i) =>
+      row(
+        `${esc(i.name)}${i.detail ? ` <span style="color:#5A6378;">(${esc(i.detail)})</span>` : ''} × ${i.quantity}`,
+        usd(i.unit_cents * i.quantity)
+      )
+    )
+    .join('');
+  return `
+    <table style="width:100%;border-collapse:collapse;margin:18px 0;">
+      <tbody>
+        ${lines}
+        <tr><td colspan="2" style="border-top:1px solid rgba(15,26,46,0.10);padding-top:4px;"></td></tr>
+        ${row('Subtotal', usd(order.subtotal_cents))}
+        ${row(order.fulfillment === 'pickup' ? 'Pickup' : 'Shipping', order.shipping_cents ? usd(order.shipping_cents) : 'Free')}
+        ${order.tax_cents ? row('Tax', usd(order.tax_cents)) : ''}
+        ${row('Total', usd(order.total_cents ?? order.subtotal_cents), true)}
+      </tbody>
+    </table>`;
+}
+
+/** To the buyer, once payment is confirmed. */
+export function orderConfirmed(ctx: OrderEmailContext) {
+  const { order } = ctx;
+  const name = firstName(order.customer_name);
+  const where = addressLines(order.shipping_address);
+  return {
+    subject: `Order confirmed — #${orderNumber(order.id)}`,
+    html: shell(`
+      ${heading('Thanks for your order.')}
+      <p style="margin:0 0 14px;">
+        Hey${name ? ` ${esc(name)}` : ' there'}! Your order <strong>#${orderNumber(order.id)}</strong> is confirmed.
+      </p>
+      ${orderTable(ctx)}
+      ${order.fulfillment === 'pickup'
+        ? `<p style="margin:0 0 14px;"><strong>Pickup:</strong> you chose to pick this up at an upcoming EEC event.
+             We'll email you with the event and details.</p>`
+        : `<p style="margin:0 0 6px;"><strong>Shipping to:</strong></p>
+           <p style="margin:0 0 14px;">${[order.customer_name, ...where].filter(Boolean).map((l) => esc(l!)).join('<br>')}</p>
+           <p style="margin:0 0 14px;">We'll let you know when it ships.</p>`}
+      <p style="margin:14px 0 0;color:#5A6378;font-size:13px;">
+        Questions about your order? Email
+        <a href="mailto:${CONTACT_EMAIL}" style="color:#5A6378;">${CONTACT_EMAIL}</a> with your order number.
+      </p>
+    `),
+  };
+}
+
+/** To the club, so the order gets packed. */
+export function newOrderAlert(ctx: OrderEmailContext) {
+  const { order, items } = ctx;
+  const where = addressLines(order.shipping_address);
+  return {
+    subject: `New order #${orderNumber(order.id)} — ${order.fulfillment === 'pickup' ? 'PICKUP' : 'SHIP'} — ${usd(order.total_cents ?? order.subtotal_cents)}`,
+    html: shell(`
+      ${heading(order.fulfillment === 'pickup' ? 'New order — pickup at an event' : 'New order — ship it')}
+      <p style="margin:0 0 6px;font-weight:700;">Pack:</p>
+      <ul style="margin:0 0 14px;padding-left:20px;">
+        ${items.map((i) => `<li style="margin:0 0 4px;">${i.quantity} × ${esc(i.name)}${i.detail ? ` — ${esc(i.detail)}` : ''}</li>`).join('')}
+      </ul>
+      ${detailBlock([
+        ['Order', `#${orderNumber(order.id)}`],
+        ['Customer', order.customer_name ?? ''],
+        ['Email', order.email ?? ''],
+        ['Phone', order.phone ?? ''],
+        ['Total', usd(order.total_cents ?? order.subtotal_cents)],
+      ])}
+      ${order.fulfillment === 'ship'
+        ? `<p style="margin:0 0 6px;font-weight:700;">Ship to:</p>
+           <p style="margin:0 0 14px;">${[order.customer_name, ...where].filter(Boolean).map((l) => esc(l!)).join('<br>')}</p>`
+        : `<p style="margin:0 0 14px;">They'll pick this up at an upcoming event — email them which one.</p>`}
+      <p style="margin:0;color:#5A6378;font-size:13px;">
+        When it's done, set this order's <strong>status</strong> to
+        <strong>${order.fulfillment === 'pickup' ? 'picked_up' : 'shipped'}</strong> in Supabase → orders.
+      </p>
+    `),
+  };
+}
+
+/** To everyone waiting on a sold-out size, when it comes back. */
+export function backInStock(ctx: { productName: string; size: string; url: string }) {
+  const what = `${ctx.productName}${ctx.size && ctx.size !== 'One size' ? ` (${ctx.size})` : ''}`;
+  return {
+    subject: `Back in stock — ${what}`,
+    html: shell(`
+      ${heading("It's back.")}
+      <p style="margin:0 0 14px;">
+        The <strong>${esc(what)}</strong> you asked about is back in stock. Quantities are limited, so grab yours soon.
+      </p>
+      ${confirmButton(ctx.url, 'Shop now →')}
+      <p style="margin:14px 0 0;color:#5A6378;font-size:13px;">
+        You're getting this once because you asked to be notified. We won't email you about it again.
+      </p>
     `),
   };
 }

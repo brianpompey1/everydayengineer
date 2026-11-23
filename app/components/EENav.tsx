@@ -8,6 +8,7 @@ import EELogo from './EELogo';
 const LINKS = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
+  { href: '/shop', label: 'Shop' },
 ];
 
 export default function EENav() {

@@ -6,6 +6,7 @@ const COLS = [
     title: 'Community',
     links: [
       { label: 'About', href: '/about' },
+      { label: 'Shop', href: '/shop' },
       { label: 'Join free', href: '/signup' },
     ],
   },

@@ -8,6 +8,7 @@ import EELogo from './EELogo';
 const LINKS = [
   { href: '/today', label: 'Today' },
   { href: '/events', label: 'Events' },
+  { href: '/shop', label: 'Shop' },
 ];
 
 const SearchIcon = () => (

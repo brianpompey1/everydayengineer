@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type Stripe from 'stripe';
 import { stripe } from '@/lib/stripe';
 import { markPaid } from '@/lib/payments';
+import { markOrderPaid } from '@/lib/shop';
 
 /**
  * Stripe calls this when a Checkout payment completes. The signature check
@@ -30,7 +31,9 @@ export async function POST(req: Request) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded':
       try {
-        await markPaid(event.data.object);
+        // Shop orders and paid-event RSVPs share this endpoint.
+        if (event.data.object.metadata?.kind === 'shop_order') await markOrderPaid(event.data.object);
+        else await markPaid(event.data.object);
       } catch (err) {
         // A 500 makes Stripe retry later, which is what we want here.
         console.error('[stripe webhook] markPaid failed:', err);

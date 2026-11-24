@@ -169,9 +169,9 @@ export default function SignInPage() {
         textTransform: 'uppercase',
         color: 'rgba(255,255,255,0.5)',
       }}>
-        <Link href="/" style={{ color: '#fff' }}>
+        <span style={{ color: '#fff' }}>
           <EELogo />
-        </Link>
+        </span>
         <span>Vol. 03 · Issue 04</span>
         <span>Resume Session</span>
       </div>
@@ -198,26 +198,6 @@ export default function SignInPage() {
             </p>
           </div>
 
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 32 }}>
-            <p style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 28, lineHeight: 1.3, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
-              "Joining the Field has been the single best professional decision I've made in five years."
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 20 }}>
-              <EEPhoto tone="warm" style={{ width: 40, height: 40, borderRadius: '50%' }} />
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 14, color: '#fff' }}>Amara Okonkwo</div>
-                <div className="ee-mono" style={{ color: 'rgba(255,255,255,0.5)' }}>STAFF ML ENG · ANTHROPIC</div>
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginTop: 40, paddingTop: 32, borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-              {[['1,247', 'members'], ['14', 'cities'], ['142', 'events / year']].map(([n, l]) => (
-                <div key={l}>
-                  <div style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 40, color: 'var(--ee-gold)' }}>{n}</div>
-                  <div className="ee-mono" style={{ color: 'rgba(255,255,255,0.6)', marginTop: 4 }}>{l.toUpperCase()}</div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Right — form */}

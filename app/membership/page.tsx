@@ -46,7 +46,7 @@ const TIERS = [
 ];
 
 const BENEFITS = [
-  { icon: '⊙', t: 'Member Directory', b: 'Search & message 1,247 vetted engineers across 14 cities. Filter by stack, specialty, or city.' },
+  { icon: '⊙', t: 'Member Directory', b: 'Search & message engineers across the community. Filter by stack, specialty, or city.' },
   { icon: '◻', t: 'Events & RSVPs', b: 'Weekly Society Hoops, monthly DUMBO labs, quarterly retreats. RSVPs members-only.' },
   { icon: '◈', t: 'Deep-Tech Workshops', b: 'Monthly 3-hour labs led by Field members on systems, ML, fintech, and infra. Recordings included.' },
   { icon: '♡', t: 'Wellness Retreats', b: 'Twice-yearly weekends in the Catskills. Sleep, sauna, hike, and dialogue. Members get first refusal.' },

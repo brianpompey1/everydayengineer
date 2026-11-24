@@ -17,7 +17,7 @@ function CheckIcon() {
 }
 
 const INCLUDED = [
-  ['Member directory', '1,247 engineers across 14 cities. Search & message.'],
+  ['Member directory', 'Find engineers in the community. Search & message.'],
   ['Events & RSVPs', 'Society Hoops, deep-tech labs, brunches, retreats.'],
   ['Habit tracker', 'Set goals. Build daily habits. Optional accountability.'],
   ['Field Journal', 'Photography & writing from the community.'],
@@ -174,18 +174,6 @@ export default function SignUpPage() {
             ))}
           </div>
         </div>
-        <div>
-          <p style={{ fontFamily: 'var(--ee-display)', fontStyle: 'italic', fontSize: 36, lineHeight: 1.15, color: '#fff', maxWidth: 480, marginBottom: 24 }}>
-            "Joining was the best decision I made this year — the directory alone is worth it."
-          </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <EEPhoto tone="warm" label="" style={{ width: 44, height: 44, borderRadius: '50%' }} />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>Amara Okonkwo</div>
-              <div className="ee-mono" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>STAFF ML ENG · ANTHROPIC</div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -195,7 +183,7 @@ export default function SignUpPage() {
     return (
       <div className="ee-signup-grid" style={{ background: 'var(--ee-paper)' }}>
         <div className="ee-signup-form" style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
-          <Link href="/"><EELogo /></Link>
+          <EELogo />
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 460 }}>
             <div className="ee-eyebrow">VERIFY YOUR EMAIL</div>
             <h1 className="ee-h2" style={{ marginTop: 14, fontSize: 44 }}>Check your inbox.</h1>
@@ -263,7 +251,7 @@ export default function SignUpPage() {
   return (
     <div className="ee-signup-grid" style={{ background: 'var(--ee-paper)' }}>
       <div className="ee-signup-form" style={{ padding: '48px 64px', display: 'flex', flexDirection: 'column' }}>
-        <Link href="/"><EELogo /></Link>
+        <EELogo />
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 460 }}>
           <div className="ee-eyebrow">CREATE YOUR ACCOUNT · FREE</div>

@@ -87,8 +87,6 @@ export default function LandingPage() {
           <span>40.6782° N · 73.9442° W</span>
           <span className="ee-dot">·</span>
           <span>VOL. 03 · ISSUE 04</span>
-          <span className="ee-dot">·</span>
-          <span>FIELD MEMBERS · 1,247</span>
         </div>
       </section>
 

@@ -58,7 +58,7 @@ export default function EEMemberNav() {
     <nav className="ee-nav" style={{ justifyContent: 'space-between' }}>
       {/* Logo + member badge */}
       <Link href="/today" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <EELogo label={false} />
+        <EELogo label={false} href="" />
         <span className="ee-mono" style={{ color: 'var(--ee-ink-3)' }}>MEMBER</span>
       </Link>
 

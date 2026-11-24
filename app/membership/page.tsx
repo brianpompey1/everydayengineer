@@ -15,7 +15,6 @@ const TIERS = [
     cta: 'Create account',
     highlight: false,
     features: [
-      ['Field Journal · digital edition', true],
       ['Public events (3 / quarter)', true],
       ['Newsletter dispatch', true],
       ['Member directory', false],
@@ -33,7 +32,6 @@ const TIERS = [
     cta: 'Apply for the Field',
     highlight: true,
     features: [
-      ['Field Journal · print + digital', true],
       ['Public events (unlimited)', true],
       ['Newsletter dispatch', true],
       ['Member directory & DMs', true],
@@ -51,7 +49,6 @@ const BENEFITS = [
   { icon: '◈', t: 'Deep-Tech Workshops', b: 'Monthly 3-hour labs led by Field members on systems, ML, fintech, and infra. Recordings included.' },
   { icon: '♡', t: 'Wellness Retreats', b: 'Twice-yearly weekends in the Catskills. Sleep, sauna, hike, and dialogue. Members get first refusal.' },
   { icon: '◫', t: 'Private Channels', b: 'Curated rooms by city, stack, and stage. No noise, no firehose, no recruiters.' },
-  { icon: '▣', t: 'Field Journal', b: 'Quarterly print magazine + digital archive. Free shipping for Field members.' },
   { icon: '◁', t: 'Member-Only Drops', b: 'First access to all gear, plus member-exclusive seasonal pieces. Free domestic shipping.' },
   { icon: '◯', t: 'Mentorship Match', b: 'Twice-a-year matching to senior or junior members based on goals. Quarterly check-ins included.' },
 ];

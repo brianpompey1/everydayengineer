@@ -20,7 +20,6 @@ const INCLUDED = [
   ['Member directory', 'Find engineers in the community. Search & message.'],
   ['Events & RSVPs', 'Society Hoops, deep-tech labs, brunches, retreats.'],
   ['Habit tracker', 'Set goals. Build daily habits. Optional accountability.'],
-  ['Field Journal', 'Photography & writing from the community.'],
 ];
 
 export default function SignUpPage() {
